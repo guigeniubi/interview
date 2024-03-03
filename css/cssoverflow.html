@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="styles.css">
+  <title>两栏布局</title>
+</head>
+<body>
+  <div class="container">
+    <div class="column left-column">
+      <h2>左栏</h2>
+      <p>这是一些文本，用于填充左栏。Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam.</p>
+    </div>
+    <div class="column right-column">
+      <h2>右栏</h2>
+      <p>这是一些文本，用于填充右栏。Lorem ipsum dotext-overflow: ellipsistext-overflow: ellipsistext-overflow: ellipsistext-overflow: ellipsistext-overflow: ellipsistext-overflow: ellipsistext-overflow: ellipsislor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam.</p>
+    </div>
+  </div>
+</body>
+<style>
+    body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+}
+
+.container {
+  display: flex;
+}
+
+.column {
+  flex: 1;
+  padding: 20px;
+}
+
+p {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3; /* 显示行数 */
+  text-overflow: ellipsis; /* 超出了用省略号 */
+}
+</style>
+</html>>

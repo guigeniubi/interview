@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    .container {
+      display: flex;
+      height: 100px;
+    }
+
+    .left {
+      flex: 1; /* 让左边自适应 */
+      background-color: lightblue;
+      padding: 10px;
+    }
+
+    .right {
+      width: 200px;
+      background-color: lightcoral;
+      padding: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="left">
+      <!-- 左边内容 -->
+      左边自适应
+    </div>
+    <div class="right">
+      <!-- 右边内容 -->
+      右边固定宽度
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div class="containr">
+        <div class="img">
+            <img class="pic" src="" alt="" data-src="./imgs/1.png">
+        </div>
+        <div class="img">
+            <img class="pic" src="" alt="" data-src="./imgs/2.png">
+        </div>
+        <div class="img">
+            <img class="pic" src="" alt="" data-src="./imgs/3.png">
+        </div>
+        <div class="img">
+            <img class="pic" src="" alt="" data-src="./imgs/4.png">
+        </div>
+        <div class="img">
+            <img class="pic" src="" alt="" data-src="./imgs/5.png">
+        </div>
+        <div class="img">
+            <img class="pic" src="" alt="" data-src="./imgs/6.png">
+        </div>
+        <div class="img">
+            <img class="pic" src="" alt="" data-src="./imgs/7.png">
+        </div>
+        <div class="img">
+            <img class="pic" src="" alt="" data-src="./imgs/8.png">
+        </div>
+        <div class="img">
+            <img class="pic" src="" alt="" data-src="./imgs/9.png">
+        </div>
+    </div>
+</body>
+
+</html>
+<script>
+    // 获取所有图片的数组
+    const imgs = document.querySelectorAll('.containr .pic')
+    // 获取父元素
+    const containr = document.querySelector('.containr')
+    // 获取可视区域高度
+    const viewHeight = window.innerHeight
+
+    const load = lazyLoad()
+    // 首屏渲染
+    load()
+    function lazyLoad() {
+        // 运用闭包 count 进行计数 避免已显示的图片重复参与循环
+        let count = 0
+        return () => {
+            for (let i = count; i < imgs.length; i++) {
+                // getBoundingClientRect()获取返回元素的大小及其相对于视口的位置
+                // 获取第i张图片是否在可视区域
+                let distance = viewHeight - imgs[i].getBoundingClientRect().top
+                if (distance >= 0) {
+                    // 图片在可视区域时设置图片的src 为 当前元素 data-src
+                    imgs[i].src = imgs[i].getAttribute('data-src')
+                    // 图片已被显示，下次从count + 1 张开始检查是否在可视区域
+                    count += 1
+                }
+            }
+        }
+    }
+    // 添加滚动事件触发加载
+    // containr.addEventListener('scroll', load, false)
+    //利用防抖限制滚动频繁触发
+    containr.addEventListener('scroll', debounce(load, 1000), false)
+</script>

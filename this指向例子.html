@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <script type="text/javascript">
+        var obj = {
+            a:1,
+            c:2,
+            say:function(a){
+                console.log(this);
+                var sayA = function(a){
+                    console.log(this);
+                    this.a = a;
+                };
+                function sayC(){
+                    console.log(this);
+                }
+                sayA(a);
+                sayC()
+            }
+        }
+        obj.say(3);
+        console.log(obj.a+"  "+obj.c);
+        console.log(window.a+"  "+window.c);
+    </script>
+    
+    <!-- <script type="text/javascript">
+        function Person(name,age){
+            this.name = name;
+            this.age = age;
+        }
+        var person1 = new Person("张三",18);
+        var person2 = Person("李四",12);
+        console.log(person1);
+        console.log(person2);
+        console.log(person1.name,person1.age);
+        console.log(window.name,window.age);
+    </script>  -->
+    <!-- <script type="text/javascript">
+        var objc = {
+            name:"张三",
+            sayName:function(){
+                console.log(this);
+                console.log(this.name);
+                function show(){
+                    console.log(this);
+                }
+                show()
+            }
+        }
+        objc.sayName()//
+        window.objc.sayName();//obj本来就在window中，与上面的结果一样
+   </script> -->
+
+</body>
+</html>
