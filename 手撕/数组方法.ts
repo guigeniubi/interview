@@ -14,11 +14,13 @@ declare interface Array<T> {
 
     every(callback: (value: T, index: number, array: T[]) => unknown, thisArg?:any): boolean;
 // 增删改查
+    push(item:T):number
+
+    unshift(item:T):number;
+
     pop():T|undefined;
 
     shift():T|undefined;
-
-    unshift():T|undefined;
 
     splice(startIndex: number, deleteCount?: number, ...incertItems: T[]): T[]
 
@@ -33,8 +35,8 @@ declare interface Array<T> {
   
     findIndex(predicate: (value: T, index: number, array: T[]) => unknown): number;
 
-  //字符串转换
-    join(Separator:string):string;
+  //字符串转换join是将数组中所有元素转换为一个字符串，分隔符可以用于连接数组元素，不改变原数组
+    join(Separator ?:string):string;
 
     toString():string
 
