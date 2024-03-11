@@ -39,6 +39,38 @@
 
 </html>
 <script>
+
+
+
+
+//节流:
+
+    function throttle(fn,timeout){
+        let timer =null;//闭包
+        return function(){
+            let args=arguments
+            if(!timer){
+                timer=setTimeout(()=>{
+                    fn.apply(this,args)
+                    timer =null;
+                },timeout)
+            }
+        }
+    }
+
+
+    //防抖
+    function debounce(fn,timeout){
+        let timer= null;
+        
+        return function(){
+            let args= arguments
+            clearTimeout(timer);
+            timer=setTimeout(()=>{
+                fn.apply(this,args)
+            },timeout)
+        }
+    }
     // 获取所有图片的数组
     const imgs = document.querySelectorAll('.containr .pic')
     // 获取父元素
