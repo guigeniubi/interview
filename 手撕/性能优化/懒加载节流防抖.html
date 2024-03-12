@@ -61,7 +61,7 @@
 
     //防抖
     function debounce(fn,timeout){
-        let timer= null;
+        let timer= null;   //闭包
         
         return function(){
             let args= arguments
