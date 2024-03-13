@@ -25,7 +25,7 @@ function PromiseAll<T>(iterable: T[]) {
   return new Promise((resovle, reject) => {
     const promises = Array.from(iterable); //需要把promises转换成数组
 
-    const result = [];
+    const result:any = [];
 
     let count = 0;
 
