@@ -32,7 +32,7 @@ const AnchorPoint = () => {
       <div className="content">
         <div id="section1" className="section">
           <h2>Section 1</h2>
-          <p>Content of section 1</p>
+          <p>Content of section 1</p>   
           <br/>
           <br/>
           <br/>
@@ -40,12 +40,32 @@ const AnchorPoint = () => {
           <br/>
           <br/>
           <br/>
-
+          <br/>
+          <br/>
+          <br/>
+          <br/>
+          <br/>
+          <br/>
+          <br/>
         </div>
             
         <div id="section2" className="section">
           <h2>Section 2</h2>
           <p>Content of section 2</p>
+          <br/>
+          <br/>
+          <br/>
+          <br/>
+          <br/>
+          <br/>
+          <br/>
+          <br/>
+          <br/>
+          <br/>
+          <br/>
+          <br/>
+          <br/>
+          <br/>
           <br/>
           <br/>
           <br/>
