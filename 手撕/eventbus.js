@@ -23,7 +23,7 @@
         const eventList = this.eventObj[name];
         // 执行所有回调函数且传入参数
         for (const callbcak of eventList) {
-          callbcak(...args);
+          callback(...args);
         }
       }
   }

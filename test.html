@@ -1,44 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
-    <style>
-        * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-        .father::after {
-            content: '';
-            display: table;
-            clear: both;
-        }
-
-        .father {
-            background-color: red;
-            width: 100px;
-            height: 100px;
-        }
-
-        .sun {
-            background-color: black;
-            width: 50px;
-            height: 150px;
-            float: right;
-        }
-    </style>
 </head>
-
 <body>
-
-    <div class="father">
-        <div class="sun"></div>
-    </div>
-
+    
 </body>
-
 </html>
+<script>
+Object.prototype.n=1
+b = new Function();
+
+Object.prototype={
+    n:5 ,
+    m:4
+}
+console.log(b.n);
+console.log(b,m);
+var a =new Function();
+console.log(a.n);
+console.log(a.m);
+
+</script>
