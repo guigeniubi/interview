@@ -1,8 +1,10 @@
 function sum(x,y,z) {
+    console.log(x + y + z);
     return x + y + z
+    
 }
 
-function hyCurrying(fn) {
+function hyCurry(fn) {
     // 判断当前已经接收的参数的个数，和函数本身需要接收的参数是否一致
     function curried(...args) {
         // 1.当已经传入的参数 大于等于 需要的参数时，就执行函数
@@ -21,3 +23,7 @@ function hyCurrying(fn) {
     }
     return curried
 }
+var curryAdd = hyCurry(sum)
+curryAdd(10,20,30)
+curryAdd(10,20)(30)
+curryAdd(10)(20)(30)

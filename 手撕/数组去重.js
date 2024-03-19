@@ -1,5 +1,5 @@
 // 1.Set + 数组复制
-fuction unique1(array){
+function unique1(array){
     // Array.from()，对一个可迭代对象进行浅拷贝
     return Array.from(new Set(array))
 }
