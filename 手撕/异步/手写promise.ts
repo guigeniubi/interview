@@ -1,3 +1,18 @@
+function MyPromise(): Promise<string> {
+  return new Promise((res, rej) => {
+    setTimeout(() => {
+      res("");
+    }, 200);
+  });
+}
+MyPromise()
+  .then((res) => {
+    console.log(res);
+  })
+  .catch((error) => {
+    console.log(error);
+  });
+
 function Promisethen(onResovled, onRejected) {
   const newPromise = new Promise((resovled, reject) => {
     if (this.status === "resovled") {
@@ -25,7 +40,7 @@ function PromiseAll<T>(iterable: T[]) {
   return new Promise((resovle, reject) => {
     const promises = Array.from(iterable); //需要把promises转换成数组
 
-    const result:any = [];
+    const result: any = [];
 
     let count = 0;
 
@@ -44,11 +59,11 @@ function PromiseAll<T>(iterable: T[]) {
 }
 
 //返回的是一个Promise，并以第一个改变状态的Promise的状态为自己的状态
-function PromiseRace<T>(Iterable){
-    return new Promise((res,rej)=>{
-        const promises=Array.from(Iterable);
-        for(let i=0;i<promises.length;i++){
-            Promise.resolve(promises[i]).then(res).catch(rej);
-        }
-    })
+function PromiseRace<T>(Iterable) {
+  return new Promise((res, rej) => {
+    const promises = Array.from(Iterable);
+    for (let i = 0; i < promises.length; i++) {
+      Promise.resolve(promises[i]).then(res).catch(rej);
+    }
+  });
 }
