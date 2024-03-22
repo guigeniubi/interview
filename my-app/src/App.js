@@ -4,6 +4,7 @@ import Drag from './component/drag/drag.tsx'; // 确保路径和配置正确
 import Selectapp from './component/select/select.tsx';
 import ScrollFetch from './component/ScrollFetch/ScrollFetch.tsx';
 import AnchorPoint from './component/AnchorPoint/AnchorPoint.tsx';
+import VirtualArray from './component/virtualArray/virtualArray.tsx';
 const App = () => {
   return (
     <Router>
@@ -13,6 +14,7 @@ const App = () => {
         <Route path="/select" element={<Selectapp />} />
         <Route path="/Scroll" element={<ScrollFetch />} />
         <Route path="/anchorPoint" element={ <AnchorPoint />} />
+        <Route path="/virtualArray" element={ <VirtualArray />} />
       </Routes>
     </Router>
   );
