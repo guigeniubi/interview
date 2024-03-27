@@ -36,25 +36,32 @@ function Promisethen(onResovled, onRejected) {
 }
 
 //都成功返回的是全部成功的Promise数组
-function PromiseAll<T>(iterable: T[]) {
-  return new Promise((resovle, reject) => {
-    const promises = Array.from(iterable); //需要把promises转换成数组
+function promiseAll(promises) {
+  return new Promise(function(resolve, reject) {
+      // 记录已解决的 promise 的数量
+      let resolvedCount = 0;
+      // 记录每个 promise 的结果
+      const promiseResults = new Array(promises.length);
 
-    const result: any = [];
+      for (let i = 0; i < promises.length; i++) {
+          // 立即执行每个 promise
+          promises[i].then(
+              // promise 成功解决
+              value => {
+                  resolvedCount++;
+                  promiseResults[i] = value;
 
-    let count = 0;
-
-    for (let i = 0; i < promises.length; i++) {
-      Promise.resolve(promises[i])
-        .then((res) => {
-          result[i] = res;
-          count++;
-          if (count == promises.length) {
-            resovle(result);
-          }
-        })
-        .catch((err) => reject(err));
-    }
+                  // 如果所有的 promise 都解决了，那么我们可以解决总的 promise
+                  if (resolvedCount === promises.length) {
+                      resolve(promiseResults);
+                  }
+              },
+              // 如果任何一个 promise 失败了，我们都需要拒绝总的 promise
+              error => {
+                  reject(error);
+              }
+          );
+      }
   });
 }
 

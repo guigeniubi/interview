@@ -5,6 +5,7 @@ import Selectapp from './component/select/select.tsx';
 import ScrollFetch from './component/ScrollFetch/ScrollFetch.tsx';
 import AnchorPoint from './component/AnchorPoint/AnchorPoint.tsx';
 import VirtualArray from './component/virtualArray/virtualArray.tsx';
+import UploadFile from './component/uploadFile/uploadFile.tsx';
 const App = () => {
   return (
     <Router>
@@ -15,6 +16,7 @@ const App = () => {
         <Route path="/Scroll" element={<ScrollFetch />} />
         <Route path="/anchorPoint" element={ <AnchorPoint />} />
         <Route path="/virtualArray" element={ <VirtualArray />} />
+        <Route path="/uploadFile" element={ <UploadFile />} />
       </Routes>
     </Router>
   );
