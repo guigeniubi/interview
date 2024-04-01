@@ -10,7 +10,21 @@
 </body>
 </html>
 <script>
-var e = "text";
+console.log('Start');
 
-console.log(e[0]);
+setTimeout(() => {
+  console.log('Timeout');
+}, 0);
+
+Promise.resolve().then(() => {
+  console.log('Promise');
+  setTimeout(() => {
+    console.log('this');
+  }, 0);
+
+  console.log('End');
+});
+setTimeout(() => {
+  console.log('123');
+}, 0);
 </script>

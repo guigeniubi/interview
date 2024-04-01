@@ -8,7 +8,7 @@ function myQuerySelector(selector, context = document) {
         return element;
       }
   
-      const children = element.children;
+      const children = element.children
       for (let i = children.length - 1; i >= 0; i--) {
         stack.push(children[i]);
       }

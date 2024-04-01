@@ -12,3 +12,18 @@ function sleep(ms) {
     })
 }
 test()
+
+
+
+function delay(delay, str) {
+    return new Promise((res, rej) => {
+        setTimeout(() => {
+            res(str)
+        }, delay)
+    })
+}
+delay(200, 'hello').then(res => {
+    console.log(res);
+}).catch(err => {
+    console.log(err);
+})

@@ -14,6 +14,3 @@ function addScript(src) {
   // 接口返回的数据格式，加载完js脚本后会自动执行回调函数
   handleRes({a: 1, b: 2});
   
-  作者：黑暗深处的九月
-  链接：https://www.nowcoder.com/discuss/398883449182978048?sourceSSR=users
-  来源：牛客网
