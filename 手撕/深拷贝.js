@@ -19,6 +19,7 @@ function deepCopy(obj) {
     if (obj instanceof Date) {
         copy = new Date();
         copy.setTime(obj.getTime());
+     
         return copy;
     }
 
