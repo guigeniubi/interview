@@ -29,6 +29,6 @@ function breadthTraversalByLevels(node) {
             }
             result.push(currentLevel);  // 将当前层的数组添加到结果数组
         }
-    }
+    } 
     return result;  // 返回包含每一层节点值的数组的结果数组
 }
