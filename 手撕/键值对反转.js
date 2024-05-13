@@ -11,8 +11,6 @@ function reverseObject(obj) {
     }
     return reversedObj; // 返回反转后的对象
 }
-
-
 function reverseObject(obj) {
     // 使用 Object.entries 方法将对象转换为键值对数组，并使用 reduce 方法进行反转
     return Object.entries(obj).reduce((reversed, [key, value]) => {
@@ -21,7 +19,6 @@ function reverseObject(obj) {
         return reversed;
     }, {}); // 初始值是一个空对象
 }
-
 const originalObj = { a: 1, b: 2, c: 3 };
 const reversedObj = reverseObject(originalObj);
 console.log(reversedObj);

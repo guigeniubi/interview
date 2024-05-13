@@ -3,7 +3,7 @@
 //     b : "023"
 
 // }
-// obj2 =JSON.parse(JSON.stringify(obj))
+obj2 =JSON.parse(JSON.stringify(obj))//无法处理循环引用
 
 function deepCopy(obj) {
   let copy;

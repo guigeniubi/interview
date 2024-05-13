@@ -11,7 +11,6 @@ const dom = {
 function traverseDOM(node) {
   // 处理当前节点
   console.log(node.id);
-
   // 遍历子节点
   if (node.children && node.children.length > 0) {
     for (const child of node.children) {
