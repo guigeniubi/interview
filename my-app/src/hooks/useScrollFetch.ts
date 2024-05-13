@@ -30,17 +30,14 @@ export function useScrollFetch<T extends any[] | undefined>(
     threshold: 0,
     ...options,
   };
-
   if (typeof isEnd !== "function") {
     throw Error("options.isEnd must be a function");
   }
-
   const [isLoading, toggleLoading] = useState<boolean>(false);
   const [data, setData] = useState<T>([] as unknown as T);
   const watchedValue = useRef<any>(watch);
   const isFetching = useRef<boolean>(false);
   const initialized = useRef<boolean>(false);
-
   const wrappedService = useCallback(
     (reset?: boolean) => {
       isFetching.current = true;
@@ -56,9 +53,7 @@ export function useScrollFetch<T extends any[] | undefined>(
           if (typeof afterFetching === "function") {
             afterFetching(response);
           }
-
           isFetching.current = false;
-
           if (reset) {
             setData(response);
           } else if (response) {
@@ -77,7 +72,6 @@ export function useScrollFetch<T extends any[] | undefined>(
   useEffect(() => {
     if (!initialized.current) {
       wrappedService();
-
       initialized.current = true;
     }
   }, [wrappedService]);
