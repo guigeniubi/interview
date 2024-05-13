@@ -1,51 +1,71 @@
-<script>
-  class EventBus {
-    // 定义所有事件列表,格式如下：
-    // {
-    //   key: Array,
-    //   key: Array,
-    // } 
-    // Array存储的是注册的回调函数
-    constructor() {
-        this.eventObj = {}; // 用于存储所有订阅事件
-      }
-      // 订阅事件,类似监听事件$on('key',()=>{})
-      $on(name, callbcak) {
-        // 判断是否存储过
-        if (!this.eventObj[name]) {
-          this.eventObj[name] = [];
-        }
-        this.eventObj[name].push(callbcak); // 往事件数组里面push
-      }
-      // 发布事件,类似于触发事件$emit('key')
-      $emit(name, ...args) {
-        // 获取存储的事件回调函数数组
-        const eventList = this.eventObj[name];
-        // 执行所有回调函数且传入参数
-        for (const callbcak of eventList) {
-          callback(...args);
-        }
-      }
+class EventBus {
+  constructor() {
+    this.eventObj = {};
   }
-    
-  
-  // 初始化EventBus
-  let EB = new EventBus();
 
+  $on(name, callback) {
+    if (!this.eventObj[name]) {
+      this.eventObj[name] = [];
+    }
+    this.eventObj[name].push(callback);
+  }
 
-  // 订阅事件
-  EB.$on('key1', (name, age) => {
-    console.info("我是订阅事件A:", name, age);
-  })
-  EB.$on("key1", (name, age) => {
-    console.info("我是订阅事件B:", name, age);
-  })
-  EB.$on("key2", (name) => {
-    console.info("我是订阅事件C:", name);
-  })
+  $emit(name, ...args) {
+    const eventList = this.eventObj[name];
+    if (eventList) {
+      for (const callback of eventList) {
+        callback(...args);
+      }
+    }
+  }
 
+  $once(name, callback) {
+    const onceCallback = (...args) => {
+      this.$off(name, onceCallback);
+      callback(...args);
+    };
+    this.$on(name, onceCallback);
+  }
 
-  // 发布事件
-  EB.$emit('key1', "小猪课堂", 26);
-  EB.$emit('key2', "小猪课堂");
-</script>
+  $off(name, callback) {
+    const eventList = this.eventObj[name];
+    if (eventList) {
+      if (callback) {
+        const index = eventList.indexOf(callback);
+        if (index !== -1) {
+          eventList.splice(index, 1);
+        }
+      } else {
+        // 没有传入回调函数，则移除该事件的所有回调函数
+        delete this.eventObj[name];
+      }
+    }
+  }
+}
+
+// 初始化EventBus
+let EB = new EventBus();
+
+// 订阅事件
+EB.$on("key1", (name, age) => {
+  console.info("我是订阅事件A:", name, age);
+});
+EB.$on("key1", (name, age) => {
+  console.info("我是订阅事件B:", name, age);
+});
+EB.$on("key2", (name) => {
+  console.info("我是订阅事件C:", name);
+});
+
+// 一次性订阅事件
+EB.$once("key1", (name, age) => {
+  console.info("我是一次性订阅事件:", name, age);
+});
+
+// 发布事件
+EB.$emit("key1", "小猪课堂", 26);
+EB.$emit("key2", "小猪课堂");
+
+// 取消订阅事件
+EB.$off("key1"); // 取消所有key1的订阅
+EB.$emit("key1", "取消订阅后不会执行"); // 取消后不会再执行回调
