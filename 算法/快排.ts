@@ -41,19 +41,23 @@ function partition(arr, startIndex, endIndex) {
     // 向右递归
     quickSort(arr, pivotIndex + 1, endIndex)
   }
+  var arr = [1,9,6,7,9]
+  quickSort(arr,0,4)
+  console.log(arr);
+  
   //模板
 
-  function quickSort2(arr:number[],left:number,right:number){
-    if(left>=right){
-      return;
-    }
-    let i=left+1,j=right-1;
-    let midvalue=arr[i+j>>1];
-    while(i<j){
-      do i ++ ; while (arr[i] < midvalue);
-      do j -- ; while (arr[j] > midvalue);
-      if (i < j) swap(arr[i], arr[j]);
-    }
-    quickSort2(arr,left,j);
-    quickSort(arr,i,right);
-  }
+  // function quickSort2(arr:number[],left:number,right:number){
+  //   if(left>=right){
+  //     return;
+  //   }
+  //   let i=left+1,j=right-1;
+  //   let midvalue=arr[i+j>>1];
+  //   while(i<j){
+  //     do i ++ ; while (arr[i] < midvalue);
+  //     do j -- ; while (arr[j] > midvalue);
+  //     if (i < j) swap(arr[i], arr[j]);
+  //   }
+  //   quickSort2(arr,left,j);
+  //   quickSort(arr,i,right);
+  // }
