@@ -1,18 +1,18 @@
-function foo() {
-  this.print = () => {
-    console.log(1);
-  };
+function findChar(str) {
+  let arr = str.split("")
+  arr = arr.sort()
+  var n = 1
+  var arr1 = []
+  var maxchar = ""
+  for (let i = 0; i < arr.length; i++) {
+    if (arr[i] === arr[i + 1]) {
+      maxchar = arr[i]
+      n++
+    } else {
+      arr1[n] = maxchar
+      n=1
+    }
+  }
+  return maxchar
 }
-
-foo.prototype.print = () => {
-  console.log(2);
-};
-
-function foo2() {
-  this.print = () => {
-    console.log(3);
-  };
-}
-foo2.prototype = Object.create(foo.prototype);
-var b = new foo2();
-b.print();
+console.log(findChar("asdaasssb"));

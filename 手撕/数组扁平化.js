@@ -12,18 +12,18 @@ function flatDeep(arr, deepLen) {
   }
   return result;
 }
-console.log(flatDeep(array));
+console.log(flatDeep(array,1));
 //深搜flat
-var array = [1, [2, [3, [4, 5]]]];
-function flatDeep(arr) {
-	return arr.flat(Infinity)/*层数
-}
-console.log(flatDeep(array)); // [ 1, 2, 3, 4, 5 ]
+// var array = [1, [2, [3, [4, 5]]]];
+// function flatDeep(arr) {
+//   return arr.flat(Infinity)/*层数
+// }
+// console.log(flatDeep(array)); // [ 1, 2, 3, 4, 5 ]
 
 // toString 和spilt和map
-var array = [1, [2, [3, [4, 5]]]];
-function flatDeep(arr){
-	let result = [];
-	return result = arr.toString().split(',').map(Number)
-}
-console.log(flatDeep(array));
+// var array = [1, [2, [3, [4, 5]]]];
+// function flatDeep(arr){
+// 	let result = [];
+// 	return result = arr.toString().split(',').map(Number)
+// }
+// console.log(flatDeep(array));

@@ -42,26 +42,19 @@ function promiseAll(promises) {
       let resolvedCount = 0;
       // 记录每个 promise 的结果
       const promiseResults = new Array(promises.length);
-
-      for (let i = 0; i < promises.length; i++) {
-          // 立即执行每个 promise
-          promises[i].then(
-              // promise 成功解决
-              value => {
-                  resolvedCount++;
-                  promiseResults[i] = value;
-
-                  // 如果所有的 promise 都解决了，那么我们可以解决总的 promise
-                  if (resolvedCount === promises.length) {
-                      resolve(promiseResults);
-                  }
-              },
-              // 如果任何一个 promise 失败了，我们都需要拒绝总的 promise
-              error => {
-                  reject(error);
-              }
-          );
-      }
+      promises.forEach((promise,index) => {
+        Promise.resolve(promise).then(value=>{
+            resolvedCount++;
+            promiseResults[index]=value;
+            if(resolvedCount===promises.length){
+              resolve(promiseResults)
+            }
+        })
+        .catch(err=>{
+          console.log(err);
+          
+        })
+      });
   });
 }
 
