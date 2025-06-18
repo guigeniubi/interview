@@ -37,6 +37,9 @@ function Promisethen(onResovled, onRejected) {
 
 //都成功返回的是全部成功的Promise数组
 function promiseAll(promises) {
+  if(!Array.isArray(promises)) {
+    return
+  }
   return new Promise(function(resolve, reject) {
       // 记录已解决的 promise 的数量
       let resolvedCount = 0;
