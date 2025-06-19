@@ -37,27 +37,28 @@ function Promisethen(onResovled, onRejected) {
 
 //都成功返回的是全部成功的Promise数组
 function promiseAll(promises) {
-  if(!Array.isArray(promises)) {
-    return
+  if (!Array.isArray(promises)) {
+    return;
   }
-  return new Promise(function(resolve, reject) {
-      // 记录已解决的 promise 的数量
-      let resolvedCount = 0;
-      // 记录每个 promise 的结果
-      const promiseResults = new Array(promises.length);
-      promises.forEach((promise,index) => {
-        Promise.resolve(promise).then(value=>{
-            resolvedCount++;
-            promiseResults[index]=value;
-            if(resolvedCount===promises.length){
-              resolve(promiseResults)
-            }
+  return new Promise(function (resolve, reject) {
+    // 记录已解决的 promise 的数量
+    let resolvedCount = 0;
+    // 记录每个 promise 的结果
+    const promiseResults = new Array(promises.length);
+    promises.forEach((promise, index) => {
+      Promise.resolve(promise)
+        .then((value) => {
+          resolvedCount++;
+          promiseResults[index] = value;
+          if (resolvedCount === promises.length) {
+            resolve(promiseResults);
+          }
         })
-        .catch(err=>{
-          console.log(err);
-          
-        })
-      });
+        .catch((err) => {
+          // 任何一个 Promise 失败，立即 reject
+          reject(err);
+        });
+    });
   });
 }
 

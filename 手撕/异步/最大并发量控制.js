@@ -1,10 +1,4 @@
 function limitQueue(urls, limit) {
-  // 完成任务数
-  let i = 0;
-  // 填充满执行队列
-  for (let excuteCount = 0; excuteCount < limit; excuteCount++) {
-    run();
-  }
   // 执行一个任务
   function run() {
     // 构造待执行任务 当该任务完成后 如果还有待完成的任务 继续执行任务
@@ -15,6 +9,12 @@ function limitQueue(urls, limit) {
     }).then(() => {
       if (i < urls.length) run();
     });
+  }
+  // 完成任务数
+  let i = 0;
+  // 填充满执行队列
+  for (let excuteCount = 0; excuteCount < limit; excuteCount++) {
+    run();
   }
 }
 const fn = (url) => {
