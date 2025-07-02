@@ -12,40 +12,31 @@
 - [使用场景](#使用场景)
 - [最佳实践](#最佳实践)
 
-## 基本概念
-
-### 为什么需要缓存？
-
-在 React 中，每次组件重新渲染时，函数和对象都会重新创建，这可能导致：
-
-1. **子组件不必要的重新渲染**
-2. **昂贵的计算重复执行**
-3. **依赖数组失效**
-
-```javascript
 // ❌ 问题示例：每次渲染都创建新函数
 function ParentComponent() {
-  const [count, setCount] = useState(0);
+const [count, setCount] = useState(0);
 
-  // 每次渲染都会创建新的函数引用
-  const handleClick = () => {
-    console.log("Button clicked");
-  };
+// 每次渲染都会创建新的函数引用
+const handleClick = () => {
+console.log("Button clicked");
+};
 
-  return (
-    <div>
-      <button onClick={() => setCount(count + 1)}>Count: {count}</button>
-      <ChildComponent onButtonClick={handleClick} />
-    </div>
-  );
+return (
+
+<div>
+<button onClick={() => setCount(count + 1)}>Count: {count}</button>
+<ChildComponent onButtonClick={handleClick} />
+</div>
+);
 }
 
 // ChildComponent 会不必要地重新渲染
 const ChildComponent = React.memo(({ onButtonClick }) => {
-  console.log("ChildComponent rendered");
-  return <button onClick={onButtonClick}>Click me</button>;
+console.log("ChildComponent rendered");
+return <button onClick={onButtonClick}>Click me</button>;
 });
-```
+
+````
 
 ## useCallback 详解
 
@@ -55,46 +46,26 @@ const ChildComponent = React.memo(({ onButtonClick }) => {
 const memoizedCallback = useCallback(() => {
   doSomething(a, b);
 }, [a, b]);
-```
+````
 
 ### 工作原理
 
 useCallback 返回一个**记忆化的回调函数**，只有当依赖项发生变化时，才会创建新的函数引用。
 
+#### 手写 useCallback
+
 ```javascript
-import React, { useState, useCallback } from "react";
-
-function OptimizedParent() {
-  const [count, setCount] = useState(0);
-  const [text, setText] = useState("");
-
-  // 只有当 count 变化时才创建新函数
-  const handleCountClick = useCallback(() => {
-    console.log("Count button clicked, count:", count);
-  }, [count]);
-
-  // 只有当 text 变化时才创建新函数
-  const handleTextClick = useCallback(() => {
-    console.log("Text button clicked, text:", text);
-  }, [text]);
-
-  // 永远不会创建新函数（空依赖数组）
-  const handleStaticClick = useCallback(() => {
-    console.log("Static button clicked");
-  }, []);
-
-  return (
-    <div>
-      <input value={text} onChange={(e) => setText(e.target.value)} />
-      <button onClick={() => setCount(count + 1)}>Count: {count}</button>
-
-      <ChildComponent
-        onCountClick={handleCountClick}
-        onTextClick={handleTextClick}
-        onStaticClick={handleStaticClick}
-      />
-    </div>
-  );
+let lastCallback: Function | null = null;
+let lastDeps: any[] | null = null;
+function areDepsEqual(a: any[], b: any[]) {
+  return a.length === b.length && a.every((v, i) => v === b[i]);
+}
+function useCallback(callback: Function, deps: any[]) {
+  if (!lastDeps || !areDepsEqual(deps, lastDeps)) {
+    lastCallback = callback;
+    lastDeps = deps;
+  }
+  return lastCallback;
 }
 
 // 使用 React.memo 优化子组件
@@ -115,65 +86,18 @@ const ChildComponent = React.memo(
 
 ## useMemo 详解
 
-### 基本语法
+#### 手写 useMemo
 
 ```javascript
-const memoizedValue = useMemo(() => computeExpensiveValue(a, b), [a, b]);
-```
+let lastValue: any = null;
+let lastDepsMemo: any[] | null = null;
 
-### 工作原理
-
-useMemo 返回一个**记忆化的值**，只有当依赖项发生变化时，才会重新计算。
-
-```javascript
-import React, { useState, useMemo } from "react";
-
-function ExpensiveComponent({ items, filter }) {
-  const [count, setCount] = useState(0);
-
-  // 昂贵的计算：只有当 items 或 filter 变化时才重新计算
-  const filteredItems = useMemo(() => {
-    console.log("Computing filtered items...");
-    return items.filter((item) =>
-      item.name.toLowerCase().includes(filter.toLowerCase())
-    );
-  }, [items, filter]);
-
-  // 另一个昂贵的计算：只有当 items 变化时才重新计算
-  const totalPrice = useMemo(() => {
-    console.log("Computing total price...");
-    return items.reduce((sum, item) => sum + item.price, 0);
-  }, [items]);
-
-  // 静态值：永远不会重新计算
-  const staticValue = useMemo(() => {
-    console.log("Computing static value...");
-    return "This value never changes";
-  }, []);
-
-  return (
-    <div>
-      <button onClick={() => setCount(count + 1)}>
-        Re-render count: {count}
-      </button>
-
-      <div>
-        <h3>Filtered Items ({filteredItems.length}):</h3>
-        <ul>
-          {filteredItems.map((item) => (
-            <li key={item.id}>
-              {item.name} - ${item.price}
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      <div>
-        <h3>Total Price: ${totalPrice}</h3>
-        <p>{staticValue}</p>
-      </div>
-    </div>
-  );
+function useMemo(factory: () => any, deps: any[]) {
+  if (!lastDepsMemo || !areDepsEqual(deps, lastDepsMemo)) {
+    lastValue = factory();
+    lastDepsMemo = deps;
+  }
+  return lastValue;
 }
 ```
 
@@ -186,51 +110,6 @@ function ExpensiveComponent({ items, filter }) {
 | **适用场景** | 传递给子组件的回调函数 | 昂贵的计算、对象创建 |
 | **性能影响** | 减少子组件重新渲染     | 避免重复计算         |
 | **依赖项**   | 函数内部使用的变量     | 计算所需的变量       |
-
-### 详细对比示例
-
-```javascript
-import React, { useState, useCallback, useMemo } from "react";
-
-function ComparisonExample() {
-  const [count, setCount] = useState(0);
-  const [items, setItems] = useState([1, 2, 3, 4, 5]);
-
-  // useCallback: 缓存函数引用
-  const handleClick = useCallback(() => {
-    console.log("Button clicked, count:", count);
-  }, [count]);
-
-  // useMemo: 缓存计算结果
-  const expensiveValue = useMemo(() => {
-    console.log("Computing expensive value...");
-    return items.reduce((sum, item) => sum + item * 2, 0);
-  }, [items]);
-
-  // useMemo: 缓存对象
-  const memoizedObject = useMemo(
-    () => ({
-      count,
-      items: items.length,
-      expensiveValue,
-    }),
-    [count, items.length, expensiveValue]
-  );
-
-  return (
-    <div>
-      <button onClick={() => setCount(count + 1)}>Count: {count}</button>
-      <button onClick={() => setItems([...items, items.length + 1])}>
-        Add Item
-      </button>
-
-      <ChildComponent onButtonClick={handleClick} data={memoizedObject} />
-
-      <p>Expensive Value: {expensiveValue}</p>
-    </div>
-  );
-}
-```
 
 ## 实现原理
 
@@ -333,49 +212,6 @@ function DataFetcher({ userId }) {
   }, [fetchData]); // 依赖 fetchData
 
   return <div>{/* 渲染数据 */}</div>;
-}
-```
-
-### useMemo 适用场景
-
-1. **昂贵的计算**
-2. **避免重复创建对象/数组**
-3. **优化渲染性能**
-
-```javascript
-// 场景1：昂贵的计算
-function ExpensiveCalculation({ numbers }) {
-  const sortedNumbers = useMemo(() => {
-    console.log("Sorting numbers...");
-    return [...numbers].sort((a, b) => a - b);
-  }, [numbers]);
-
-  const sum = useMemo(() => {
-    console.log("Calculating sum...");
-    return numbers.reduce((acc, num) => acc + num, 0);
-  }, [numbers]);
-
-  return (
-    <div>
-      <p>Sorted: {sortedNumbers.join(", ")}</p>
-      <p>Sum: {sum}</p>
-    </div>
-  );
-}
-
-// 场景2：避免重复创建对象
-function UserProfile({ user }) {
-  const userInfo = useMemo(
-    () => ({
-      name: user.name,
-      email: user.email,
-      avatar: user.avatar || "/default-avatar.png",
-      isActive: user.lastLogin > Date.now() - 24 * 60 * 60 * 1000,
-    }),
-    [user.name, user.email, user.avatar, user.lastLogin]
-  );
-
-  return <UserCard userInfo={userInfo} />;
 }
 ```
 
