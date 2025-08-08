@@ -153,7 +153,9 @@ const useChat = ({
   const isRetryingOptions = useRef(false);
   const timeSpace = useRef<number>(APP_ID.value === "30005" ? 35 : 75);
   const streamTextLength = useRef<number>(APP_ID.value === "30005" ? 3 : 3);
-  const { switchVideoEnabled } = useReadingStore();
+  const { switchVideoEnabled } = useReadingStore((state) => ({
+    switchVideoEnabled: state.switchVideoEnabled,
+  }));
 
   useEffect(() => {
     if (messages?.length > 0) {
@@ -429,6 +431,7 @@ const useChat = ({
         ) {
           if (
             message.role === RoleType.UserInput ||
+            message.role === RoleType.UserVideoInput ||
             message.role === RoleType.UserImageInput ||
             message.role === RoleType.UserSendGift
           ) {
@@ -443,7 +446,6 @@ const useChat = ({
             ]);
           }
         }
-
         const accumulatedContent = {} as Record<string, any>;
         let finishReason: string | null = null;
         let outputType: YunjingServiceChatOutputType | null = null;
@@ -466,7 +468,9 @@ const useChat = ({
                 responseData.data.outputType ===
                   YunjingServiceChatOutputType.SseDialogOutput ||
                 responseData.data.outputType ===
-                  YunjingServiceChatOutputType.SseThinkingOutput;
+                  YunjingServiceChatOutputType.SseThinkingOutput ||
+                responseData.data.outputType ===
+                  YunjingServiceChatOutputType.SseDialogOutputVideo;
               const isOption = [
                 YunjingServiceChatOutputType.SseDialogOption,
                 YunjingServiceChatOutputType.SseStoryOption,
@@ -571,6 +575,9 @@ const useChat = ({
                 responseData?.data?.charInfo?.charTtsSpeaker;
               contentData.newMessage.manual = responseData.data?.manual || 0;
               contentData.newMessage.round = responseData.data?.round || 0;
+              contentData.newMessage.getBetterVideo =
+                responseData.data?.getBetterVideo || false;
+
               if (responseData.data.imageInfo) {
                 contentData.newMessage.imageUrl = responseData.data.imageInfo;
                 console.log("anyImgdata:", responseData.data.imageInfo);
@@ -684,7 +691,7 @@ const useChat = ({
                         return newMessages;
                       });
                     } else {
-                      console.log("change outputType");
+                      console.log("change outputType", currentOutputType);
                       // 切换到下一个 outputType
                       const keys = Object.keys(
                         accumulatedContent
@@ -708,6 +715,33 @@ const useChat = ({
                         intervalId = null;
 
                         if (finishReason === "stop") {
+                          const msgVideo = Object.values(
+                            accumulatedContent
+                          ).find(
+                            (item) =>
+                              item.newMessage.type ===
+                              YunjingServiceChatOutputType.SseDialogOutputVideo
+                          );
+                          if (msgVideo) {
+                            msgVideo.newMessage.content = "视频生成中....";
+                            msgVideo.newMessage.chatVideoInfo = {
+                              videoUrl: "",
+                              quotedMsgId: message.id,
+                              quotedContent: message.content,
+                            };
+                            msgVideo.newMessage.type =
+                              YunjingServiceChatOutputType.SseDialogOutput;
+                            msgVideo.newMessage.role = RoleType.AssistantReply;
+                            setMessages((prevMessages) => {
+                              console.log("see data", msgVideo?.newMessage);
+                              const newMessages = [
+                                ...prevMessages,
+                                msgVideo.newMessage,
+                              ];
+                              return newMessages;
+                            });
+                          }
+
                           const dynamicVideo = Object.values(
                             accumulatedContent
                           ).find(
@@ -756,8 +790,10 @@ const useChat = ({
                               return newMessages;
                             });
                             iSensor.track("Giftreward_ep", {
-                              ext1: JSON.stringify({
+                              publicData: {
                                 plot_id: sceneId || "",
+                              },
+                              ext1: JSON.stringify({
                                 photo_id: assemble.subInfo || [],
                                 gift_source:
                                   getGiftIdFromUrl(
@@ -1294,7 +1330,7 @@ const useChat = ({
   };
 
   const continueChat = async (role: number, userAutoplayEnabled?: boolean) => {
-    console.log(11111111);
+    console.log(11111111, role);
     if (role !== 1 && role !== 10000) return;
     removeVideoMessage();
     return append({
