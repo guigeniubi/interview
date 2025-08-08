@@ -145,3 +145,85 @@ const {
    - 实时获取本地/远端音量，驱动 UI 动画（如语音波形、头像动画等）。
 
 ---
+
+## 10. 面试常见问题与标准回答（FAQ）
+
+### 1. 为什么用 RTC（XRTC/WebRTC/Agora）？
+
+- 低延迟实时音频，信令与媒体分离，便于业务自定义。
+- XRTC 支持自定义信令（如 CURRENT_STATE_UPDATE），更灵活、可控。
+
+### 2. 信令与媒体的区别？
+
+- 媒体承载音频流，信令负责会话建立/断开/心跳/状态同步/余额刷新/业务错误等。
+
+### 3. NAT 穿透/ICE/STUN/TURN 有什么用？
+
+- ICE 负责候选收集，STUN 获取公网地址，TURN 作为中继，弱网/企业内网需 TURN 保证可达。
+
+### 4. 音频路由与设备管理怎么做？
+
+- InCallManager 控制扬声器/耳机/蓝牙，自动切换，兼容 iOS/Android。
+
+### 5. 如何保证“UI 文本”和 TTS 一致？
+
+- 服务端通过 CURRENT_STATE_UPDATE 信令推送 AI 正在说的 text，前端 UI 只渲染 statusData.text，TTS 播报同一份文本，天然一致。
+- 流式输出时多次下发 text，UI 实时刷新。
+
+### 6. 连接状态与重连怎么处理？
+
+- 监听 XRTCConnectionState，Connected/Disconnected/Reconnecting/Failed，断线清理心跳，重连回调 onReconnected。
+
+### 7. 后台与心跳如何保证？
+
+- 用 react-native-background-timer 保证心跳和音量检测在后台不断，卸载/断连时清理。
+
+### 8. 异常与超时怎么兜底？
+
+- 通话建立 Deferred 超时防卡死，业务错误（余额不足/会员到期）走 BUSINESS_LOGIC_ERROR，统一 onError 处理。
+
+### 9. 音量检测与 UI 动画如何联动？
+
+- 每 200ms 采样本地/远端音量，驱动语音波形/头像动画，InteractionManager 降低渲染阻塞。
+
+### 10. 权限/打断如何处理？
+
+- 麦克风权限失败兜底，来电/其他音频打断监听系统音频焦点。
+
+### 11. 性能与时延优化？
+
+- 端到端延迟优化：编解码、网络 RTT、抖动缓存，弱网降级策略。
+
+### 12. 安全与合规？
+
+- 传输加密（DTLS/SRTP），鉴权，录音/日志合规。
+
+### 13. 测试与观测？
+
+- 弱网/丢包/抖动压测，关注连接耗时、断连次数、心跳丢失、音量轨迹。
+
+### 14. RN 实践细节？
+
+- InteractionManager 包裹频繁 setState，清理顺序：心跳 → 音量 →XRTC→InCallManager。
+- getState() 用于异步/回调/Mutation，UI 渲染用 hook 订阅。
+
+### 15. iOS/Android 差异？
+
+- 音频焦点/蓝牙路由 API 差异，后台保活策略、电量限制不同。
+
+### 16. 回调设计如何解耦？
+
+- onStatusUpdate（文本/状态）、onAlmostRunoutAlert（时长预警）、onRefreshBalance（余额刷新）、onError（业务错误）、onDisconnected/onReconnected（会话稳定性）。
+
+---
+
+**标准回答模版**：
+
+> 我们用自研的 XRTC 做 RTC，媒体传输与信令分离。
+> UI 文本和 TTS 一致的关键是服务端通过 CURRENT_STATE_UPDATE 推送“将要播报的文本”，前端只渲染这份 text 并同时用它做 TTS，因此保证所见即所听。
+> 心跳用 BackgroundTimer 保活，连接与重连用 XRTCConnectionState 管理。
+> 异常超时用 Deferred 防卡死，业务错误与系统错误分层处理。
+> 设备路由由 InCallManager 控制，音量采样 200ms 驱动 UI 动画。所
+> 有定时器与资源在卸载/断连时清理，确保稳定和能耗可控。
+
+---
