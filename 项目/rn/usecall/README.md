@@ -140,10 +140,6 @@ const {
    - 支持 onDisconnected、onReconnected、onStatusUpdate、onError 等多种回调，便于业务层灵活处理。
    - 所有副作用和定时器都需在组件卸载时清理，防止内存泄漏。
 
-6. **音量检测与动画联动**
-
-   - 实时获取本地/远端音量，驱动 UI 动画（如语音波形、头像动画等）。
-
 ---
 
 ## 10. 面试常见问题与标准回答（FAQ）
@@ -223,7 +219,6 @@ const {
 > UI 文本和 TTS 一致的关键是服务端通过 CURRENT_STATE_UPDATE 推送“将要播报的文本”，前端只渲染这份 text 并同时用它做 TTS，因此保证所见即所听。
 > 心跳用 BackgroundTimer 保活，连接与重连用 XRTCConnectionState 管理。
 > 异常超时用 Deferred 防卡死，业务错误与系统错误分层处理。
-> 设备路由由 InCallManager 控制，音量采样 200ms 驱动 UI 动画。所
-> 有定时器与资源在卸载/断连时清理，确保稳定和能耗可控。
+> 设备路由由 InCallManager 控制，音量采样 200ms 驱动 UI 动画。所有定时器与资源在卸载/断连时清理，确保稳定和能耗可控。
 
 ---
