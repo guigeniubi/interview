@@ -48,11 +48,6 @@
   - 发送 END 信令，清理心跳和音量定时器。
   - 等待 1 秒或收到 END_RECEIVED 消息后断开连接。
 
-### 4.4 其他功能
-
-- `interruptAIResponse()`：发送 INTERRUPT 信令，中断 AI 响应。
-- `send()`：底层信令发送方法，支持自定义消息类型和数据。
-
 ---
 
 ## 5. 返回值说明
@@ -68,48 +63,6 @@
 - `remainingCallDuration`：剩余通话时长
 - `remainingCallDurationRef`：剩余通话时长 ref
 - `send`：底层信令发送方法
-
----
-
-## 6. 典型用法
-
-```ts
-const {
-  statusData,
-  audioLevel,
-  remoteAudioLevel,
-  makeCall,
-  closeCall,
-  interruptAIResponse,
-  remainingCallDuration,
-  send,
-} = useCall({
-  onDisconnected: ...,
-  onReconnected: ...,
-  onStatusUpdate: ...,
-  onError: ...,
-  // 其他回调
-})
-```
-
----
-
-## 7. 重点注意事项
-
-- **心跳和音量定时器**需在组件卸载时清理，避免内存泄漏。
-- **所有回调参数**都可选，建议按需实现。
-- **Deferred** 用于异步超时控制，防止通话建立卡死。
-- **所有信令和状态同步**都通过 XRTC 实例完成，业务层无需关心底层细节。
-
----
-
-## 8. 技术栈与依赖
-
-- **XRTC**：自研/定制的实时音视频通信 SDK，负责底层音频流、信令、设备管理。
-- **react-native-incall-manager**：管理通话时的设备状态（如扬声器、耳机、屏幕常亮等）。
-- **react-native-background-timer**：保证心跳、音量检测等定时任务在 App 后台也能可靠执行。
-- **react-native-device-info**：检测设备信息，如耳机是否连接。
-- **Deferred**：自定义的异步超时控制工具类，防止通话建立卡死。
 
 ---
 
@@ -153,18 +106,15 @@ const {
 
 - 媒体承载音频流，信令负责会话建立/断开/心跳/状态同步/余额刷新/业务错误等。
 
-### 3. NAT 穿透/ICE/STUN/TURN 有什么用？
-
-- ICE 负责候选收集，STUN 获取公网地址，TURN 作为中继，弱网/企业内网需 TURN 保证可达。
-
 ### 4. 音频路由与设备管理怎么做？
 
 - InCallManager 控制扬声器/耳机/蓝牙，自动切换，兼容 iOS/Android。
 
 ### 5. 如何保证“UI 文本”和 TTS 一致？
 
-- 服务端通过 CURRENT_STATE_UPDATE 信令推送 AI 正在说的 text，前端 UI 只渲染 statusData.text，TTS 播报同一份文本，天然一致。
-- 流式输出时多次下发 text，UI 实时刷新。
+- 传统方案：前端显示一段文本，TTS 播放另一段文本 → 容易不同步
+- 当前方案：服务端通过 CURRENT_STATE_UPDATE 推送"正在播报的文本"
+- 结果：前端 UI 显示的就是 TTS 正在说的内容，天然保证一致性
 
 ### 6. 连接状态与重连怎么处理？
 
