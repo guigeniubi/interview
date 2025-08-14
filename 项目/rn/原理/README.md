@@ -46,6 +46,86 @@ const memoizedCallback = useCallback(() => handleEvent(id), [id]);
 - JSI（JavaScript Interface）替代传统 Bridge，支持同步调用，提升通信效率。
 - Fabric 渲染引擎让 JS 端和原生端 UI 树保持同步，提升一致性和性能。
 
----
+## 6. 热更新原理
 
-！
+### 核心思想
+
+React Native 热更新基于 **JS Bundle 动态替换** 实现，无需重新安装 App 即可更新业务逻辑。
+
+### 实现原理
+
+**1. Bundle 分离**
+
+```js
+// 基础 Bundle（原生能力，很少变化）
+const nativeModules = require("react-native");
+
+// 业务 Bundle（频繁更新）
+const businessLogic = require("./src/App");
+```
+
+**2. 版本检测与下载**
+
+```js
+const checkUpdate = async () => {
+  const remoteVersion = await fetch("/api/version").then((r) => r.json());
+  const localVersion = await AsyncStorage.getItem("bundleVersion");
+
+  return remoteVersion > localVersion ? downloadNewBundle(remoteVersion) : null;
+};
+
+// 函数式下载流程
+const downloadNewBundle = pipe(
+  fetchBundleUrl,
+  downloadWithProgress,
+  validateChecksum,
+  saveToLocal
+);
+```
+
+**3. Bundle 切换机制**
+
+```js
+// 应用启动时选择 Bundle
+const loadBundle = () => {
+  const latestBundle = getLatestValidBundle();
+
+  try {
+    // 加载新 Bundle
+    require(latestBundle);
+  } catch (error) {
+    // 降级到安全 Bundle
+    require("./fallback.bundle.js");
+  }
+};
+```
+
+### 技术实现方案
+
+**CodePush 流程**：
+
+1. **检测更新**：App 启动时对比版本号
+2. **下载差分包**：只下载变更部分，减少流量
+3. **原子替换**：下载完成后一次性替换整个 Bundle
+4. **回滚机制**：新版本崩溃时自动回退到稳定版本
+
+**函数式热更新管理**：
+
+```js
+const createHotUpdateManager = () => ({
+  check: () => checkForUpdates(),
+  download: pipe(fetchUpdate, validateBundle, cacheBundle),
+  apply: (bundle) => switchBundle(bundle),
+  rollback: () => revertToSafeBundle(),
+  cleanup: () => removeOldBundles(),
+});
+```
+
+### 限制与注意事项
+
+- **只能更新 JS 代码**：原生代码变更仍需发版
+- **Apple 政策**：避免下载可执行代码，需谨慎使用
+- **版本兼容性**：确保新 Bundle 与原生模块版本匹配
+- **网络策略**：支持增量更新和断点续传
+
+---
