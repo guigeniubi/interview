@@ -1,4 +1,8 @@
-“我们在 sayloai 项目里自研了一套基于 Formly + Designable 思路的运营可视化搭建系统，分成设计态和运行态两部分。设计态用拖拽生成 Schema，运行态 Schema 驱动渲染，还支持动态联动、异步数据源和热更新，这样活动页面可以完全由运营配置和发布，研发只需维护组件库。
+“我们在 sayloai 项目里自研了一套基于 Formly + Designable 思路的运营可视化搭建系统，
+从左侧拖入表单控件组成表单，中间可以预览，选中预览的控件在右侧面板填写两个必填的字段：字段标识和标题。
+字段标识就是开发者消费这个字段用到的 key，就是对象中的 key。
+标题就是运营同学识别这个字段的标题。
+上面四个 Tab 依次切换 表单编辑态预览，Schema 预览，表单生成后的数据预览，表单预览。
 
 # 可视化表单搭建系统
 
@@ -19,71 +23,11 @@ https://www.yuque.com/xjchenhao/development/wd0vsg#u0pku
 
 ## 2. 技术架构
 
-### 核心技术栈
-
-```typescript
-// 架构分层
-interface SystemArchitecture {
-  designEngine: "Designable"; // 设计器引擎
-  formEngine: "Formly"; // 表单引擎
-  schemaStandard: "JSON Schema"; // 数据规范
-  renderEngine: "React"; // 渲染引擎
-  stateManager: "Zustand"; // 状态管理
-}
-```
-
 ### 系统架构图
 
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   设计态         │    │   引擎层         │    │   运行态         │
-│  Designable     │    │   Formly        │    │   Renderer      │
-│                 │    │                 │    │                 │
-│ • 组件拖拽       │───▶│ • Schema生成     │───▶│ • 表单渲染       │
-│ • 属性配置       │    │ • 数据验证        │    │ • 数据收集       │
-│ • 实时预览       │    │ • 联动逻辑        │    │ • 事件处理       │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-         │                       │                       │
-         ▼                       ▼                       ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                     JSON Schema 数据层                           │
-│  • 组件定义  • 布局信息  • 验证规则  • 联动配置  • 样式主题            │
-└─────────────────────────────────────────────────────────────────┘
-```
+![系统架构图](../../assets/designable.png)
 
-## 3. Formly 集成 - Schema 驱动表单
-
-### Schema 设计规范
-
-```typescript
-// 函数式 Schema 构建
-interface FormSchema {
-  type: "object";
-  properties: Record<string, FieldSchema>;
-  required?: string[];
-  dependencies?: DependencyConfig;
-}
-
-interface FieldSchema {
-  type: "string" | "number" | "boolean" | "array" | "object";
-  title: string;
-  widget: "input" | "select" | "checkbox" | "upload" | "custom";
-  default?: any;
-  validation?: ValidationRule[];
-  conditional?: ConditionalConfig;
-}
-
-// 函数式 Schema 操作
-const createField = (type: string, config: Partial<FieldSchema>) => ({
-  type,
-  ...config,
-});
-
-const addValidation = (field: FieldSchema, rule: ValidationRule) => ({
-  ...field,
-  validation: [...(field.validation || []), rule],
-});
-```
+## 3. Formly 核心技术 - Schema 驱动表单
 
 ### 动态表单渲染
 
@@ -166,31 +110,6 @@ const updateComponent = (
 ### 组件属性配置面板
 
 ```typescript
-// 动态属性配置
-const PropertyPanel = ({
-  selectedComponent,
-}: {
-  selectedComponent: ComponentNode;
-}) => {
-  const propertySchema = getComponentPropertySchema(selectedComponent.type);
-
-  return (
-    <div className="property-panel">
-      {Object.entries(propertySchema.properties).map(([key, schema]) => (
-        <PropertyField
-          key={key}
-          name={key}
-          schema={schema}
-          value={selectedComponent.props[key]}
-          onChange={(value) =>
-            updateComponentProperty(selectedComponent.id, key, value)
-          }
-        />
-      ))}
-    </div>
-  );
-};
-
 // 递归处理复杂属性
 const PropertyField = ({ name, schema, value, onChange }) => {
   if (schema.type === "object") {
@@ -317,9 +236,107 @@ const useSchemaBinding = (initialSchema: FormSchema) => {
 };
 ```
 
-### 3. 性能优化策略
+### 3. 深拷贝与浅拷贝应用
+
+```typescript
+// 组件复制时需要深拷贝
+const duplicateComponent = (component: ComponentNode) => {
+  // 深拷贝避免引用污染
+  const cloned = deepClone(component);
+  cloned.id = generateNewId();
+
+  // 递归处理子组件
+  if (cloned.children) {
+    cloned.children = cloned.children.map((child) => duplicateComponent(child));
+  }
+
+  return cloned;
+};
+
+// Schema 更新时的浅拷贝优化
+const updateComponentProperty = (
+  tree: ComponentNode[],
+  id: string,
+  property: string,
+  value: any
+) => {
+  return tree.map((node) => {
+    if (node.id === id) {
+      // 浅拷贝节点，深拷贝props
+      return {
+        ...node, // 浅拷贝节点
+        props: {
+          ...node.props, // 浅拷贝props
+          [property]: value, // 更新特定属性
+        },
+      };
+    }
+
+    // 递归处理子节点
+    if (node.children?.length > 0) {
+      return {
+        ...node,
+        children: updateComponentProperty(node.children, id, property, value),
+      };
+    }
+
+    return node; // 无变化直接返回原对象（性能优化）
+  });
+};
+
+// 历史记录需要深拷贝快照
+const useHistoryManager = () => {
+  const [history, setHistory] = useState([]);
+  const [currentIndex, setCurrentIndex] = useState(-1);
+
+  const saveSnapshot = useCallback(
+    (state: DesignState) => {
+      // 深拷贝保存快照，避免后续修改影响历史记录
+      const snapshot = deepClone(state);
+
+      setHistory((prev) => [...prev.slice(0, currentIndex + 1), snapshot]);
+      setCurrentIndex((prev) => prev + 1);
+    },
+    [currentIndex]
+  );
+
+  const undo = useCallback(() => {
+    if (currentIndex > 0) {
+      setCurrentIndex((prev) => prev - 1);
+      return deepClone(history[currentIndex - 1]); // 返回深拷贝
+    }
+  }, [history, currentIndex]);
+
+  return { saveSnapshot, undo };
+};
+
+// 表单数据处理的拷贝策略
+const useFormDataManager = () => {
+  // 表单值更新：浅拷贝优化
+  const updateFormValue = (path: string, value: any) => {
+    setFormData((prev) => ({
+      ...prev, // 浅拷贝根对象
+      [path]: value, // 直接更新值
+    }));
+  };
+
+  // 复杂嵌套对象更新：深拷贝确保安全
+  const updateNestedValue = (path: string[], value: any) => {
+    setFormData((prev) => {
+      const newData = deepClone(prev); // 深拷贝避免引用问题
+      setDeepValue(newData, path, value);
+      return newData;
+    });
+  };
+
+  return { updateFormValue, updateNestedValue };
+};
+```
+
+### 4. 性能优化策略
 
 - **虚拟滚动**：大量组件时使用虚拟列表渲染
 - **增量更新**：只重新渲染变更的组件
 - **Schema 缓存**：复杂 Schema 计算结果缓存
 - **懒加载组件**：按需加载自定义组件
+- **智能拷贝**：根据场景选择深拷贝/浅拷贝策略
