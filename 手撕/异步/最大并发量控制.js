@@ -1,83 +1,111 @@
-function limitQueue(urls, limit) {
-  // 执行一个任务
-  function run() {
-    // 构造待执行任务 当该任务完成后 如果还有待完成的任务 继续执行任务
-    new Promise((resolve, reject) => {
-      const url = urls[i];
-      i++;
-      resolve(fn(url));
-    }).then(() => {
-      if (i < urls.length) run();
-    });
+/**
+ * 最大并发量控制 - 串行执行任务
+ * @param {Array} tasks - 任务数组，每个任务都是返回Promise的函数
+ * @param {number} timeout - 超时时间（毫秒）
+ * @param {number} retries - 最大重试次数
+ * @returns {Promise} 返回执行结果的Promise
+ */
+async function execute(tasks, timeout, retries) {
+  const results = [];
+
+  // 创建一个带超时的Promise包装器
+  const withTimeout = (promise, timeoutMs) => {
+    return Promise.race([
+      promise,
+      new Promise((_, reject) => {
+        setTimeout(() => {
+          reject(new Error(`任务超时: ${timeoutMs}ms`));
+        }, timeoutMs);
+      }),
+    ]);
+  };
+
+  // 执行单个任务的函数，包含重试逻辑
+  const executeTask = async (task, maxRetries) => {
+    let lastError;
+
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        // 执行任务并添加超时控制
+        const result = await withTimeout(task(), timeout);
+        return result;
+      } catch (error) {
+        lastError = error;
+        console.log(
+          `任务执行失败 (尝试 ${attempt + 1}/${maxRetries + 1}):`,
+          error.message
+        );
+
+        // 如果还有重试机会，继续重试
+        if (attempt < maxRetries) {
+          continue;
+        }
+      }
+    }
+
+    // 所有重试都失败了，抛出异常
+    throw new Error(
+      `任务执行失败，已重试${maxRetries}次: ${lastError.message}`
+    );
+  };
+
+  // 串行执行所有任务
+  for (let i = 0; i < tasks.length; i++) {
+    try {
+      const result = await executeTask(tasks[i], retries);
+      results.push(result);
+      console.log(`任务 ${i + 1} 执行成功:`, result);
+    } catch (error) {
+      console.error(`任务 ${i + 1} 最终执行失败:`, error.message);
+      throw error; // 抛出异常，停止执行后续任务
+    }
   }
-  // 完成任务数
-  let i = 0;
-  // 填充满执行队列
-  for (let excuteCount = 0; excuteCount < limit; excuteCount++) {
-    run();
+
+  return results;
+}
+
+// 示例用法
+async function example() {
+  // 模拟任务函数
+  const task1 = () => {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        if (Math.random() > 0.3) {
+          resolve("Task 1 完成");
+        } else {
+          reject(new Error("Task 1 失败"));
+        }
+      }, 1000);
+    });
+  };
+
+  const task2 = () => {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        if (Math.random() > 0.5) {
+          resolve("Task 2 完成");
+        } else {
+          reject(new Error("Task 2 失败"));
+        }
+      }, 800);
+    });
+  };
+
+  const task3 = () => {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve("Task 3 完成");
+      }, 500);
+    });
+  };
+
+  const tasks = [task1, task2, task3];
+
+  try {
+    console.log("开始执行任务...");
+    const results = await execute(tasks, 2000, 2); // 超时2秒，最多重试2次
+    console.log("所有任务执行完成:", results);
+  } catch (error) {
+    console.error("任务执行过程中出现错误:", error.message);
   }
 }
-const fn = (url) => {
-  // 实际场景这里用axios等请求库 发请求即可 也不用设置延时
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      console.log("完成一个任务", url, new Date());
-      resolve({ url, date: new Date() });
-    }, 1000);
-  });
-};
-const urls = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
-
-(async (_) => {
-  await limitQueue(urls, 4);
-})();
-//这样没严格控制任务的执行顺序
-// function limitQueue(urls, limit) {
-//   let i = 0; // 完成任务数
-//   const results = new Array(urls.length); // 用来保存任务结果
-
-//   return new Promise((resolve) => {
-//     // 填充满执行队列
-//     for (let executeCount = 0; executeCount < limit; executeCount++) {
-//       run();
-//     }
-
-//     // 执行一个任务
-//     function run() {
-//       if (i >= urls.length) return; // 如果所有任务都已完成，直接返回
-
-//       const currentIndex = i;
-//       const url = urls[i];
-//       i++;
-
-//       // 构造待执行任务 当该任务完成后 如果还有待完成的任务 继续执行任务
-//       new Promise((resolve, reject) => {
-//         resolve(fn(url));
-//       }).then((result) => {
-//         results[currentIndex] = result; // 保存任务结果
-//         if (i < urls.length) {
-//           run(); // 继续执行下一个任务
-//         } else if (results.filter(Boolean).length === urls.length) {
-//           resolve(results); // 所有任务完成后返回结果
-//         }
-//       });
-//     }
-//   });
-// }
-
-// const fn = (url) => {
-//   // 实际场景这里用axios等请求库 发请求即可 也不用设置延时
-//   return new Promise((resolve) => {
-//     setTimeout(() => {
-//       console.log("完成一个任务", url, new Date());
-//       resolve({ url, date: new Date() });
-//     }, 1000);
-//   });
-// };
-
-// const urls = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
-
-// (async (_) => {
-//   const results = await limitQueue(urls, 4);
-//   console.log("所有任务完成，结果如下：", results);
-// })();
