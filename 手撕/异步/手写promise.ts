@@ -71,3 +71,61 @@ function PromiseRace<T>(Iterable) {
     }
   });
 }
+// allSettled：返回一个Promise，所有输入的Promise都已settled（无论fulfilled还是rejected）后，返回每个结果的对象数组
+function promiseAllSettled(promises) {
+  if (!Array.isArray(promises)) {
+    return;
+  }
+  return new Promise((resolve) => {
+    const results = new Array(promises.length);
+    let settledCount = 0;
+    promises.forEach((promise, index) => {
+      Promise.resolve(promise)
+        .then((value) => {
+          results[index] = { status: "fulfilled", value };
+        })
+        .catch((reason) => {
+          results[index] = { status: "rejected", reason };
+        })
+        .finally(() => {
+          settledCount++;
+          if (settledCount === promises.length) {
+            resolve(results);
+          }
+        });
+    });
+    // 处理空数组
+    if (promises.length === 0) {
+      resolve([]);
+    }
+  });
+}
+
+// any：只要有一个Promise成功就返回其值，否则返回AggregateError
+function promiseAny(promises) {
+  if (!Array.isArray(promises)) {
+    return;
+  }
+  return new Promise((resolve, reject) => {
+    let rejectedCount = 0;
+    const errors = new Array(promises.length);
+    promises.forEach((promise, index) => {
+      Promise.resolve(promise)
+        .then(resolve)
+        .catch((err) => {
+          rejectedCount++;
+          errors[index] = err;
+          if (rejectedCount === promises.length) {
+            // AggregateError是ES2021标准，可以用Error模拟
+            reject(
+              new Error("All promises were rejected: " + JSON.stringify(errors))
+            );
+          }
+        });
+    });
+    // 处理空数组
+    if (promises.length === 0) {
+      reject(new Error("All promises were rejected: []"));
+    }
+  });
+}
