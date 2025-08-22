@@ -52,54 +52,7 @@ const memoizedCallback = useCallback(() => {
 
 useCallback 返回一个**记忆化的回调函数**，只有当依赖项发生变化时，才会创建新的函数引用。
 
-#### 手写 useCallback
-
-```javascript
-let lastCallback: Function | null = null;
-let lastDeps: any[] | null = null;
-function areDepsEqual(a: any[], b: any[]) {
-  return a.length === b.length && a.every((v, i) => v === b[i]);
-}
-function useCallback(callback: Function, deps: any[]) {
-  if (!lastDeps || !areDepsEqual(deps, lastDeps)) {
-    lastCallback = callback;
-    lastDeps = deps;
-  }
-  return lastCallback;
-}
-
-// 使用 React.memo 优化子组件
-const ChildComponent = React.memo(
-  ({ onCountClick, onTextClick, onStaticClick }) => {
-    console.log("ChildComponent rendered");
-
-    return (
-      <div>
-        <button onClick={onCountClick}>Count Action</button>
-        <button onClick={onTextClick}>Text Action</button>
-        <button onClick={onStaticClick}>Static Action</button>
-      </div>
-    );
-  }
-);
-```
-
 ## useMemo 详解
-
-#### 手写 useMemo
-
-```javascript
-let lastValue: any = null;
-let lastDepsMemo: any[] | null = null;
-
-function useMemo(factory: () => any, deps: any[]) {
-  if (!lastDepsMemo || !areDepsEqual(deps, lastDepsMemo)) {
-    lastValue = factory();
-    lastDepsMemo = deps;
-  }
-  return lastValue;
-}
-```
 
 ## 区别对比
 
@@ -337,3 +290,50 @@ const handleClick = useCallback(() => {
 ---
 
 > **总结**：useCallback 用于缓存函数引用，useMemo 用于缓存计算结果。合理使用这两个 Hook 可以显著提升 React 应用的性能，但要注意避免过度优化。
+
+#### 手写 useCallback
+
+```javascript
+let lastCallback: Function | null = null;
+let lastDeps: any[] | null = null;
+function areDepsEqual(a: any[], b: any[]) {
+  return a.length === b.length && a.every((v, i) => v === b[i]);
+}
+function useCallback(callback: Function, deps: any[]) {
+  if (!lastDeps || !areDepsEqual(deps, lastDeps)) {
+    lastCallback = callback;
+    lastDeps = deps;
+  }
+  return lastCallback;
+}
+
+// 使用 React.memo 优化子组件
+const ChildComponent = React.memo(
+  ({ onCountClick, onTextClick, onStaticClick }) => {
+    console.log("ChildComponent rendered");
+
+    return (
+      <div>
+        <button onClick={onCountClick}>Count Action</button>
+        <button onClick={onTextClick}>Text Action</button>
+        <button onClick={onStaticClick}>Static Action</button>
+      </div>
+    );
+  }
+);
+```
+
+#### 手写 useMemo
+
+```javascript
+let lastValue: any = null;
+let lastDepsMemo: any[] | null = null;
+
+function useMemo(factory: () => any, deps: any[]) {
+  if (!lastDepsMemo || !areDepsEqual(deps, lastDepsMemo)) {
+    lastValue = factory();
+    lastDepsMemo = deps;
+  }
+  return lastValue;
+}
+```
