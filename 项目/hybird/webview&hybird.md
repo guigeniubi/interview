@@ -1,54 +1,62 @@
-### Hybrid 概览
+## Q1：什么是 Hybrid App？为什么用它？
 
-    •	Hybrid App = 原生容器 + WebView 混合开发
-    •	高性能/强体验链路（首页、消息、支付）走原生；
-    •	高频迭代业务（活动页、资讯、表单）走 H5，由 WebView 承载。
+**A**：原生容器 + WebView 混合开发，取长补短。
 
-### 优缺点
+- 高频体验/性能敏感场景（首页、消息、支付）用原生。
+- 高频迭代/活动页/表单/资讯类用 H5，快迭代、可热更新。
 
-优势：
-• 开发成本低：H5 一处开发，多端可复用。
-• 上线快：H5 可热更新，无需应用商店审核。
+---
 
-劣势：
-• 首屏体验：相比原生更易白屏，流畅度偏弱。
-• 交互割裂：手势/动画/系统能力需桥接，体验一致性成本高。
+## Q2：Hybrid 的优缺点？
 
-⸻
+**A**：
 
-### H5 ↔ Native 通信（JSBridge）
+- 优势：跨端复用、上线快（H5 热更新免审核）。
+- 劣势：首屏白屏风险、流畅度弱；交互/系统能力依赖桥接。
 
-方向一：H5 → Native
-• 调用方式（iOS）：`window.webkit.messageHandlers.<name>.postMessage(payload)`
-• 协议结构：`{ action, params, requestId }`
-• 返回通道：原生回调携带相同 `requestId`，保证请求-响应配对。
+---
 
-方向二：Native → H5
-• 页面前置注入：`injectedJavaScriptBeforeContentLoaded` 注入初始化脚本（创建 `NativeBridge`、能力探测等）。
-• 运行时推送：原生通过 `evaluateJavaScript`/`postMessage` 主动下发事件与数据（如登录态、主题、网络变化）。
+## Q3：H5 ↔ Native 如何通信？
 
-⸻
+**A**：通过 **JSBridge**。
 
-### 性能优化要点（H5 为主）
+- H5 → Native：
+  - iOS：`window.webkit.messageHandlers.<name>.postMessage(payload)`。
+  - Android：`NativeBridge.xxx()`（`addJavascriptInterface` 暴露）。
+  - 协议：`{ action, params, requestId }`；回调带相同 `requestId` 配对。
+- Native → H5：
+  - 注入初始化脚本（`injectedJavaScriptBeforeContentLoaded`/`addJavascriptInterface`）。
+  - 运行时下发：`evaluateJavaScript` / `postMessage`。
 
-• 预加载 WebView：App 冷启动时提前创建/预热 WebView，减少首进白屏。
-• 离线包（本地直出）：将 H5 资源打包入 App，优先本地加载；网络失败可回源。
-• 增量更新：差量下发资源，仅更新变更文件，降低包体积与下载耗时。
-• 缓存复用：复用 WebView 实例与进程，避免频繁销毁重建。
+---
 
-加载顺序建议：
-• App 启动 → 预热 WebView → 校验/应用离线包 → 进入容器页 → 加载 H5 → 注入 JSBridge。
+## Q4：Hybrid 性能优化要点？
 
-⸻
+**A**：
 
-### iOS/Android 初始化要点
+- 预加载 WebView（冷启动提前创建/预热）。
+- 离线包（资源内置 App，本地优先，失败回源）。
+- 增量更新（差量下发，减体积/时延）。
+- 缓存复用（WebView 复用实例/进程，避免频繁销毁）。
+- 加载顺序：启动 → 预热 → 校验离线包 → 容器页 → 加载 H5 → 注入 JSBridge。
 
-iOS（WKWebView）：
-• 预加载：持有 WKWebView 单例或对象池；后台提前创建与加载空白页。
-• 注入：使用 `injectedJavaScriptBeforeContentLoaded` 注入 `NativeBridge` 初始化脚本。
-• 通信：`window.webkit.messageHandlers.<name>.postMessage`；原生实现 `WKScriptMessageHandler`。
+---
 
-Android（WebView）：
-• 预加载：提前创建 `WebView`，设置通用配置（缓存、UA、硬件加速）。
-• 注入：`addJavascriptInterface(obj, 'NativeBridge')`（注意混淆与 @JavascriptInterface 安全）。
-• 通信：`evaluateJavascript` 回调 H5；或 `postMessage`/`WebMessagePort`（新 API）。
+## Q5：iOS / Android 初始化要点？
+
+**A**：
+
+- **iOS (WKWebView)**：
+  - 单例/对象池预加载。
+  - `injectedJavaScriptBeforeContentLoaded` 注入 `NativeBridge`。
+  - `postMessage` + `WKScriptMessageHandler` 处理通信。
+- **Android (WebView)**：
+  - 提前创建 WebView，设置缓存/UA/硬件加速。
+  - `addJavascriptInterface(obj, "NativeBridge")`（注意 @JavascriptInterface + 混淆安全）。
+  - 通信：`evaluateJavascript` / `postMessage` / `WebMessagePort`。
+
+---
+
+## 一句话总括
+
+**Hybrid = 原生保性能，H5 保灵活，用 JSBridge 粘合，预加载 + 离线包 保体验。**
