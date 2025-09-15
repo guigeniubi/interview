@@ -20,44 +20,7 @@ Fiber 是 React 16 之后用来重写协调（Reconciliation）过程的数据�
 
 本质上，Fiber 是一种链表结构（而不是树），每个 Fiber 节点代表组件树中的一个节点。
 
-## 二、Fiber 节点的数据结构
-
-每个 Fiber 节点是一个 JS 对象，包含了如下核心属性：
-
-```javascript
-// Fiber 节点的核心属性
-{
-  type: Component,           // 当前节点的类型
-  key: 'unique-key',        // 用于 diff 的 key
-  stateNode: DOMElement,    // 对应的真实 DOM 或组件实例
-  child: Fiber,             // 第一个子 Fiber
-  sibling: Fiber,           // 下一个兄弟 Fiber
-  return: Fiber,            // 父 Fiber
-  pendingProps: {},         // 本次更新的新 props
-  memoizedProps: {},        // 上一次渲染的 props
-  memoizedState: {},        // 上一次渲染的 state
-  effectTag: 'UPDATE',      // 本节点需要执行的副作用类型
-  nextEffect: Fiber,        // 指向下一个有副作用的 Fiber
-  alternate: Fiber          // 指向当前 Fiber 的"前一版本"
-}
-```
-
-### 核心属性说明
-
-- **type**：当前节点的类型（函数组件、类组件、原生标签等）
-- **key**：用于 diff 的 key
-- **stateNode**：对应的真实 DOM 或组件实例
-- **child**：第一个子 Fiber
-- **sibling**：下一个兄弟 Fiber
-- **return**：父 Fiber
-- **pendingProps**：本次更新的新 props
-- **memoizedProps**：上一次渲染的 props
-- **memoizedState**：上一次渲染的 state
-- **effectTag**：本节点需要执行的副作用类型（如插入、更新、删除）
-- **nextEffect**：指向下一个有副作用的 Fiber
-- **alternate**：指向当前 Fiber 的"前一版本"，用于双缓冲
-
-## 三、Fiber 的双缓冲机制（Double Buffering）
+## 二、Fiber 的双缓冲机制（Double Buffering）
 
 React 维护两棵 Fiber 树：
 
@@ -68,16 +31,7 @@ React 维护两棵 Fiber 树：
 
 提交阶段（commit phase）时，workInProgress 树会变成新的 current 树。
 
-```javascript
-// 双缓冲机制示意
-let current = currentTree; // 当前显示的树
-let workInProgress = workInProgressTree; // 正在构建的树
-
-// 更新完成后
-current = workInProgress; // 交换引用
-```
-
-## 四、Fiber 的调度与分片（Time Slicing）
+## 三、Fiber 的调度与分片（Time Slicing）
 
 ### 1. 为什么要分片？
 
@@ -119,34 +73,7 @@ const priorities = {
 ### 3. commit 阶段
 
 一旦所有 Fiber 节点都处理完，统一把副作用应用到 DOM。
-这个阶段是同步、不可中断的（因为要操作真实 DOM）。
-
-```javascript
-// 工作流程示意
-function performUnitOfWork(fiber) {
-  // beginWork
-  const nextFiber = beginWork(fiber);
-
-  if (nextFiber) {
-    return nextFiber;
-  }
-
-  // completeWork
-  completeWork(fiber);
-
-  // 继续下一个兄弟节点或返回父节点
-  return fiber.sibling || fiber.return;
-}
-```
-
-## 六、Fiber 的调度器（Scheduler）
-
-React 内部有一个调度器（Scheduler），负责：
-
-- 维护任务队列
-- 分配优先级
-- 判断是否需要让出主线程
-- 重新调度被打断的任务
+这个阶段是同步、不可中断的（因为要操作真实 DOM）。要不然用户看到的会不一致。
 
 ## 七、为什么 Fiber 不是树而是链表？
 
