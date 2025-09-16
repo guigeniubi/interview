@@ -66,6 +66,33 @@
   computed 使用 lazy watcher 和 dirty 标记来控制计算；watch 使用普通 watcher，依赖变化时立即触发回调。
 - **Vue3 差异**：Vue3 提供函数式 API，computed 通过 `computed(() => ...)` 创建，watch 通过 `watch(source, callback)` 使用，内部均基于 effect 实现，API 更加灵活和直观。
 
+## ref vs reactive 对比
+
+- **ref**  
+  适合基本类型，返回带 `.value` 的响应式对象，在模板中自动解包。  
+  访问时需要通过 `.value` 读取和修改。
+
+- **reactive**  
+  适合对象、数组、Map、Set 等复杂类型，基于 Proxy 实现，支持深层响应式。  
+  访问属性和方法时直接操作原对象，无需额外 `.value`。
+
+- **区别**
+
+  - 访问方式：ref 需通过 `.value`，reactive 直接访问属性。
+  - 适用场景：ref 适合基本类型和单个值，reactive 适合复杂数据结构。
+  - 解构响应性：ref 解构后仍可保持响应性，reactive 解构后会丢失响应性。
+  - 内部实现：ref 底层是 RefImpl 类，通过 `.value` 的 getter/setter 收集依赖；reactive 使用 `createReactiveObject` 返回 Proxy，拦截 get/set/delete 操作。
+
+- **Vue3 源码层面**
+
+  - ref 是 RefImpl 类实例，依赖收集在 `.value` 的访问时触发。
+  - reactive 通过 `createReactiveObject` 创建 Proxy，拦截对象操作实现响应式。
+
+- **常见陷阱**
+  - ref 包裹对象时，访问对象属性需通过 `.value`，不如 reactive 直观。
+  - reactive 对象解构后，响应性丢失，需避免直接解构或使用 `toRefs`。
+  - 模板中 ref 会自动解包，无需 `.value`，但在 JS 代码中必须使用 `.value`。
+
 ## $set
 
 - Vue 不能检测对象属性的新增和数组索引的变化，提供了 `$set` 方法解决。
