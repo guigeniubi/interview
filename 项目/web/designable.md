@@ -1,14 +1,10 @@
-## Q1：这个系统解决了什么问题？
+## Q1：Formly
 
-**A**：降低前端介入成本，让运营可视化搭建表单页面。
+what: Schema 驱动,所有表单由 JSON Schema 定义，不需要手写大量 JSX
 
-- 拖拽生成 Schema → 实时预览 → 一键发布。
-- 运营独立配置活动，减少开发负担。
-- 数据结构统一（JSON Schema），保证上下游一致性。
-
----
-
-## Q2：Formly 思路是什么？
+how:
+a.Formily 内部有个 响应式引擎（类似 MobX 原理），叫 Reactive System。用发布订阅的设计模式,性能好
+b.每个 Field、Form 实例都能订阅数据变化，做到精准更新，不会全量渲染。
 
 **A**：Schema 驱动表单渲染。
 
@@ -32,9 +28,10 @@ const renderFormField = (schema, value, onChange) => {
 
 **A**：可视化拖拽生成 Schema。
 
-- 状态：组件树/选中组件/拖拽状态/预览模式。
-- 操作：addComponent / updateComponent → 纯函数更新树。
-- 属性配置：基于 JSON Schema → 递归处理 object/array → SimplePropertyField。
+面试可说的点
+• 考虑 组件解耦和可维护性（写个 map 注册表/工厂模式）。
+• 拖拽性能优化（虚拟列表、rAF 节流，懒加载）。
+• Schema 的可维护性（版本升级、向后兼容）。
 
 ```typescript
 const addComponent = (tree, targetId, comp) =>
@@ -43,31 +40,6 @@ const addComponent = (tree, targetId, comp) =>
       ? { ...node, children: [...node.children, comp] }
       : { ...node, children: addComponent(node.children, targetId, comp) }
   );
-```
-
----
-
-## Q4：Schema 与 UI 如何绑定？
-
-**A**：双向绑定。
-
-- Schema 驱动 UI：更新 Schema → UIState 变化。
-- UI 反馈 Schema：操作 UI → 更新 Schema。
-- Hook：`useSchemaBinding`。
-
-```typescript
-const useSchemaBinding = (initialSchema) => {
-  const [schema, setSchema] = useState(initialSchema);
-  const [uiState, setUIState] = useState(schemaToUIState(initialSchema));
-  const updateSchema = (updater) => {
-    setSchema((prev) => {
-      const newSchema = updater(prev);
-      setUIState(schemaToUIState(newSchema));
-      return newSchema;
-    });
-  };
-  return { schema, uiState, updateSchema };
-};
 ```
 
 ---
