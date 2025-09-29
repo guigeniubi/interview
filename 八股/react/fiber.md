@@ -48,17 +48,6 @@ React 维护两棵 Fiber 树：
 Fiber 支持多种优先级（如同步、异步、用户输入、动画等），高优先级任务可以打断低优先级任务。
 React 之前是 ExpirationTime，17 之后是 Lane 模型，本质是一个位掩码
 
-```javascript
-// 优先级示例
-const priorities = {
-  ImmediatePriority: 1, // 立即执行
-  UserBlockingPriority: 2, // 用户交互
-  NormalPriority: 3, // 普通更新
-  LowPriority: 4, // 低优先级
-  IdlePriority: 5, // 空闲时执行
-};
-```
-
 ## 五、Fiber 的工作流程（详细分解）
 
 ### 1. beginWork 阶段
@@ -80,56 +69,6 @@ const priorities = {
 
 - 传统递归遍历树结构时，无法中断和恢复
 - Fiber 用链表（child、sibling、return 指针）可以随时暂停、恢复、跳转到任意节点，灵活调度
-
-```javascript
-// 链表结构示意
-fiber.child = firstChild; // 第一个子节点
-fiber.sibling = nextSibling; // 下一个兄弟节点
-fiber.return = parent; // 父节点
-```
-
-## 八、Fiber 带来的新特性
-
-- **Concurrent Mode**：并发渲染，提升响应速度
-- **Suspense**：异步加载组件
-- **时间分片**：大任务拆小，不卡主线程
-- **优先级调度**：动画、输入等高优先级任务优先执行
-
-## 九、举个例子
-
-假设有一个很大的列表需要渲染，Fiber 会这样做：
-
-1. 先渲染一部分（比如前 100 个）
-2. 检查主线程是否有空闲
-3. 如果没有，暂停渲染，先响应用户输入
-4. 等有空闲时再继续渲染剩下的部分
-5. 最后一次性提交所有 DOM 变更
-
-```javascript
-// 示例：大列表渲染
-function renderLargeList(items) {
-  const batchSize = 100;
-  let currentIndex = 0;
-
-  function renderBatch() {
-    const endIndex = Math.min(currentIndex + batchSize, items.length);
-
-    for (let i = currentIndex; i < endIndex; i++) {
-      // 渲染单个项目
-      renderItem(items[i]);
-    }
-
-    currentIndex = endIndex;
-
-    if (currentIndex < items.length) {
-      // 还有更多项目，继续渲染
-      requestIdleCallback(renderBatch);
-    }
-  }
-
-  renderBatch();
-}
-```
 
 ### 十、Hooks 链表与 Fiber 的关系
 
