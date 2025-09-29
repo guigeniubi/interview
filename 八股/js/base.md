@@ -169,6 +169,14 @@ const person = new Person("John");
 console.log(person.name); // "John"
 ```
 
+    1.	立即执行 vs 返回函数
+    •	call/apply → 修改 this 并马上调用函数；
+    •	bind → 只绑定 this，返回新函数，延迟执行。
+    2.	参数形式
+    •	call：fn.call(obj, arg1, arg2, ...)
+    •	apply：fn.apply(obj, [arg1, arg2, ...])
+    •	bind：fn.bind(obj, arg1, arg2, ...)
+
 ### 3. 原型和原型链
 
 **原型链：**
