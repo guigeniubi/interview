@@ -32,7 +32,7 @@ HTML → DOM → CSSOM → Render Tree → Layout → Paint → Composite
 
 ---
 
-### 3️⃣ 渲染树（Render Tree）
+### 3️⃣ 合成渲染树（Render Tree）
 
 - 合并 DOM + CSSOM
 - 只包含可见节点（`display:none` 不参与）
