@@ -14,7 +14,6 @@ function mergeSort(arr) {
   // 递归地对左右两个子数组进行排序
   const sortedLeft = mergeSort(left);
   const sortedRight = mergeSort(right);
-
   // 合并左右两个已排序的子数组
   return merge(sortedLeft, sortedRight);
 }

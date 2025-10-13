@@ -28,26 +28,34 @@ Layout → Paint（绘制指令）
 ```
 
 ### 2.1 HTML 解析（DOM 构建）
+
 - 词法分析生成 Token，建立 DOM 节点树。
 - **阻塞点**：同步 `<script>` 会暂停解析（主线程串行）；放在底部或用 `defer/async`。
 
 ### 2.2 CSS 解析（CSSOM 构建）
+
 - 解析选择器、计算优先级/继承，生成 CSSOM。
 - **阻塞点**：CSS 没解析完，渲染树无法生成 → 通常内联关键 CSS + 延迟非关键 CSS。
 
-### 2.3 构建渲染树（Render Tree）
-- DOM 可见节点 + 样式规则 → 渲染树。
-- `display:none` 不会进渲染树，`visibility:hidden` 仍保留。
+### 3️⃣ 合成渲染树（Render Tree）
+
+- 合并 DOM + CSSOM
+- 只包含可见节点（`display:none` 不参与）
+
+---
 
 ### 2.4 布局（Layout / Reflow）
+
 - 计算几何信息（位置、尺寸、字体等）。
 - 触发点：DOM 结构变化、添加/删除元素、`offsetWidth` 等强制同步布局、窗口 resize。
 
 ### 2.5 绘制（Paint）
+
 - 生成绘制列表：背景、边框、文字、阴影。
 - 视觉属性变化（颜色、阴影）触发 Repaint。
 
 ### 2.6 合成（Composite）
+
 - 主线程把树拆成图层，提交给合成器线程。
 - 合成器线程调度栅格线程（GPU or CPU）把图层栅格化成位图，再提交 GPU 进程显示。
 - 动画如果只改合成属性（`transform`、`opacity`），可绕开主线程，大幅减轻卡顿。
