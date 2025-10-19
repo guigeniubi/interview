@@ -2,18 +2,6 @@
 
 > React Fiber 是 React 16 引入的新架构，用于重写协调过程，实现可中断的渲染和更好的用户体验。
 
-## 目录
-
-- [一、Fiber 的本质](#一fiber-的本质是什么)
-- [二、Fiber 节点的数据结构](#二fiber-节点的数据结构)
-- [三、Fiber 的双缓冲机制](#三fiber-的双缓冲机制double-buffering)
-- [四、Fiber 的调度与分片](#四fiber-的调度与分片time-slicing)
-- [五、Fiber 的工作流程](#五fiber-的工作流程详细分解)
-- [六、Fiber 的调度器](#六fiber-的调度器scheduler)
-- [七、为什么 Fiber 不是树而是链表](#七为什么-fiber-不是树而是链表)
-- [八、Fiber 带来的新特性](#八fiber-带来的新特性)
-- [九、举个例子](#九举个例子)
-
 ## 一、Fiber 的本质是什么？
 
 Fiber 是 React 16 之后用来重写协调（Reconciliation）过程的数据结构和调度机制。
