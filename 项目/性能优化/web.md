@@ -1,157 +1,75 @@
 # Next.js 性能优化实践指南
 
-## 一、构建阶段优化
+## 一、Next.js 性能瓶颈分析
 
-1. **开启 SWC 编译器优化**
+### 🎯 核心性能指标
 
-   - SWC 是 Rust 编写的编译器，比 Babel 更快：
-     ```js
-     // next.config.js
-     const nextConfig = {
-       swcMinify: true,
-     };
-     module.exports = nextConfig;
-     ```
-   - 可显著提升打包速度和构建性能。
+- **TTFB（服务器首字节）**：受数据链路长、SSR/Server Actions 阻塞、RSC 瀑布等影响
+- **LCP（最大内容绘制）**：受首屏渲染分块、图片与字体加载、流式传输与 Suspense 边界影响
+- **INP（交互响应）**：受"胖客户端组件"、不必要的水合与大包体影响
+- **CLS（布局偏移）**：受图片尺寸、字体回退策略、广告/推荐位懒加载策略影响
 
-2. **Bundle Analyzer**
+## 二、性能优化难点与解决方案
 
-   - 使用 `next-bundle-analyzer` 检查打包体积：
-     ```bash
-     npm install @next/bundle-analyzer
-     ```
-     ```js
-     const withBundleAnalyzer = require("@next/bundle-analyzer")({
-       enabled: process.env.ANALYZE === "true",
-     });
-     module.exports = withBundleAnalyzer({});
-     ```
+### 🚨 难点1：RSC + 数据获取瀑布，TTFB 居高不下
 
-3. **动态导入组件**
-   - 使用 `next/dynamic` 懒加载非首屏组件：
-     ```tsx
-     import dynamic from "next/dynamic";
-     const HeavyChart = dynamic(() => import("../components/HeavyChart"), {
-       ssr: false,
-     });
-     ```
+#### 根因分析
+在 App Router 中层层 await（含 Server Actions/route handlers）导致串行数据依赖；fetch 缓存/去重策略没用好；没有对稳定数据做增量静态化（ISR/Tag）。
 
----
+#### 解决方案
+1. **并行化获取**（避免 RSC await 瀑布）
+2. **细粒度缓存**：稳定数据打 Tag，动态失效
 
-## 二、请求与渲染优化
+```typescript
+import { unstable_cache } from 'next/cache';
 
-1. **使用 Edge Runtime**
+const getHotList = unstable_cache(
+  async () => fetchJSON('/hot'), 
+  ['hot-list'], 
+  { revalidate: 600 }
+);
+```
 
-   - 将 SSR 逻辑运行在 Edge Function：
-     ```ts
-     export const runtime = "edge";
-     export default async function handler(req: Request) {
-       return new Response("Hello from Edge!");
-     }
-     ```
+### 🚨 难点2：运行时选择（Edge vs Node）与冷启动/依赖兼容
 
-2. **流式 SSR（Streaming SSR）**
+#### 根因分析
+为降延迟"盲目上 Edge"，但 Node-only 依赖或大 Bundle 使冷启动反增大。
 
-   - 利用 `React 18` 的流式渲染：
-     ```tsx
-     import { renderToReadableStream } from "react-dom/server";
-     ```
-   - 优势：首屏更快、TTFB 降低。
+#### 解决方案
+- **延迟敏感、IO 密集、轻依赖** → `runtime = 'edge'`
+- **需要 Node API/重依赖/长计算** → `runtime = 'nodejs'` 并配合预热与长连接池
 
-3. **利用 ISR 提升性能**
-   - 按需再生成页面：
-     ```ts
-     export async function getStaticProps() {
-       return { props: {}, revalidate: 60 }; // 每 60 秒再生
-     }
-     ```
+### 🚨 难点3：首屏"胖水合"与包体过大，拖慢 LCP/INP
 
----
+#### 根因分析
+把能在服务端渲染的 UI 写成 Client Component；缺少 island 化与按需水合；next/dynamic 用得不彻底。
 
-## 三、静态资源与缓存优化
+#### 解决方案
+1. **默认 Server Component**，仅把有状态/事件部分下沉为 Client 小岛
+2. **动态导入**非首屏、交互后再加载
+3. **Streaming + Suspense** 输出关键内容优先
 
-1. **图片优化**
+## 三、体现主动性（发现—验证—落地—守护）
 
-   - `next/image` 默认懒加载、自动生成多尺寸；
-   - 启用 CDN 或 Vercel Image Optimization。
+### 1) 发现问题
+- 建立性能预算：TTFB ≤ 300ms、LCP ≤ 2.5s、INP ≤ 200ms
 
-2. **字体优化**
+### 2) 验证假设
+- 预发布 A/B：Edge vs Node、ISR vs SSR 对比
+- WebPageTest + Lighthouse CI：跑 20 次取 P75
 
-   - 使用 `next/font` 内联字体，减少网络请求：
-     ```tsx
-     import { Inter } from "next/font/google";
-     const inter = Inter({ subsets: ["latin"] });
-     ```
+### 3) 落地优化
+- 重构数据层：统一 get*() 服务内部并行化 + unstable_cache
+- 页面分层：Server 默认、Client 岛化、动态导入、Suspense 分块
+- 运行时切分：延迟敏感改 Edge，重依赖留 Node；Node 侧做连接池与预热
 
-3. **缓存策略**
-   - 使用 `stale-while-revalidate`：
-     ```js
-     res.setHeader(
-       "Cache-Control",
-       "public, s-maxage=60, stale-while-revalidate=300"
-     );
-     ```
+### 4) 守护与回归
+- 每次合并提供体积变更、TTFB LCP diff
 
----
+## 四、量化成果
 
-## 四、客户端交互与渲染优化
-
-1. **减少不必要的重渲染**
-
-   - 使用 `React.memo`、`useMemo`、`useCallback`；
-   - 避免全局状态频繁触发渲染。
-
-2. **启用并发特性**
-
-   - 使用 `useTransition` 优化交互流畅度；
-   - 结合 Suspense 提升加载体验。
-
-3. **懒加载与骨架屏**
-   - 对图表、列表、评论区使用懒加载；
-   - 首屏 Skeleton 预占位，减少视觉抖动。
-
----
-
-## 五、SEO 与 Web Vitals 优化
-
-1. **Meta 与结构化数据**
-
-   - 动态注入 title、description、OG 标签；
-   - 添加 JSON-LD 结构化数据提高爬虫识别。
-
-2. **减少 CLS 与 LCP**
-
-   - 图片、广告位提前预留空间；
-   - 首屏主内容使用 SSR 或 Streaming SSR。
-
-3. **监控关键指标**
-   - 通过 `Next.js Analytics` 或 `Web Vitals` 监控：
-     ```tsx
-     export function reportWebVitals(metric) {
-       console.log(metric);
-     }
-     ```
-
----
-
-## 六、生产部署与监控
-
-- 使用 **Vercel Edge Network** 提升全球访问速度；
-- 启用 gzip 或 brotli 压缩；
-- 集成 Sentry / Datadog / LogRocket 进行性能监控；
-- 利用 CDN 缓存 HTML 与静态资源；
-- 定期运行 Lighthouse 检查性能指标。
-
----
-
-## ✅ 总结
-
-Next.js 性能优化可以分为以下五个维度：
-
-1. **构建阶段优化**（SWC、动态导入、Bundle 分析）；
-2. **渲染优化**（Edge、Streaming、ISR）；
-3. **静态资源优化**（图片、字体、缓存策略）；
-4. **交互优化**（Suspense、useTransition、懒加载）；
-5. **SEO 与监控**（结构化数据、CLS、WebVitals）。
-
-目标：**首屏更快、交互更顺、全球更稳、可持续监控。**
+| 指标 | 优化前 | 优化后 | 提升 |
+| --- | --- | --- | --- |
+| TTFB | 1,100 ms | 220 ms | -80%（并行化 + 边缘化 + 短链路） |
+| LCP | 3.8 s | 1.9 s | -50%（Streaming + Suspense + 图片/字体优化） |
+| INP | 280 ms | 140 ms | -50%（Client 岛化 + 代码分割） |
