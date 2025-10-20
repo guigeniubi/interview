@@ -41,8 +41,6 @@ A:
   用 EventSource 或 fetch + ReadableStream 来监听后端 SSE 数据。
 - 缓冲 + 合帧
   把每个片段先 push 到一个 bufferRef，再用定时器（16~33ms，大约 1 帧）：为了区分不同语言的吐字速度，还可以做渐显，合并更新，最后 setState。
-- 大段文本合并
-  维护一个 draft 缓冲，把连续的小片段拼成大段，然后在 flush 的时候一次性更新 React 状态。
 - 断线恢复
   服务端发送 id: 字段，客户端保存 Last-Event-ID 或自定义 offset，断开后重连时带上，避免丢数据。
 - messageId 可以去重。
