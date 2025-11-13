@@ -19,10 +19,10 @@ A:
 **Q: 如何在 UI 层不卡顿地做流式增量渲染？**  
 A:
 
-- 接收片段
-  用 EventSource 或 fetch + ReadableStream 来监听后端 SSE 数据。
+- 虚拟滚动
+
 - 缓冲 + 合帧
-  把每个片段先 push 到一个 bufferRef，再用定时器（16~33ms，大约 1 帧）：为了区分不同语言的吐字速度，还可以做渐显，合并更新，最后 setState。
+  把每个片段先 push 到一个 bufferRef，再用 requestAnimaationFrame（16~33ms，大约 1 帧）：为了区分不同语言的吐字速度，还可以做渐显，合并更新，最后 setState。
 - 断线恢复
   服务端发送 id: 字段，客户端保存 Last-Event-ID 或自定义 offset，断开后重连时带上，避免丢数据。
 - messageId 可以去重。
