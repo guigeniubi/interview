@@ -1,5 +1,22 @@
 # Next.js 性能优化实践指南
 
+
+
+### 1) 发现问题
+- 建立性能预算：TTFB ≤ 300ms、LCP ≤ 2.5s、INP ≤ 200ms，本地Lighthouse，真实用户测Core Web Vitals
+
+### 2) 验证假设
+- 预发布 A/B：Edge vs Node、ISR vs SSR 对比
+- WebPageTest + Lighthouse CI：跑 20 次取 P75
+
+### 3) 落地优化
+- 重构数据层：统一 get*() 服务内部并行化 + unstable_cache
+- 页面分层：Server 默认、Client 岛化、动态导入、Suspense 分块
+- 运行时切分：延迟敏感改 Edge，重依赖留 Node；Node 侧做连接池与预热
+
+### 4) 守护与回归
+- 每次合并提供体积变更、TTFB LCP diff
+
 ## 一、Next.js 性能瓶颈分析
 
 ### 🎯 核心性能指标
@@ -49,22 +66,8 @@ const getHotList = unstable_cache(
 2. **动态导入**非首屏、交互后再加载
 3. **Streaming + Suspense** 输出关键内容优先
 
-## 三、体现主动性（发现—验证—落地—守护）
 
-### 1) 发现问题
-- 建立性能预算：TTFB ≤ 300ms、LCP ≤ 2.5s、INP ≤ 200ms
 
-### 2) 验证假设
-- 预发布 A/B：Edge vs Node、ISR vs SSR 对比
-- WebPageTest + Lighthouse CI：跑 20 次取 P75
-
-### 3) 落地优化
-- 重构数据层：统一 get*() 服务内部并行化 + unstable_cache
-- 页面分层：Server 默认、Client 岛化、动态导入、Suspense 分块
-- 运行时切分：延迟敏感改 Edge，重依赖留 Node；Node 侧做连接池与预热
-
-### 4) 守护与回归
-- 每次合并提供体积变更、TTFB LCP diff
 
 ## 四、量化成果
 
